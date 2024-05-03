@@ -1,5 +1,11 @@
 "use client";
-import { useState, useCallback } from "react";
+import { Button } from "@/components/catalyst/button";
+import {
+  DialogActions,
+  DialogBody,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/catalyst/dialog";
 import {
   Description,
   Field,
@@ -7,15 +13,9 @@ import {
   Label,
 } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
-import { Button } from "@/components/catalyst/button";
-import { useRouter } from "next/navigation";
-import {
-  DialogActions,
-  DialogBody,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/catalyst/dialog";
 import { Select } from "@/components/catalyst/select";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 const universities = [
   "Universitat Politècnica de Catalunya",
@@ -31,10 +31,7 @@ export default function FillDetails() {
 
   const handleSubmit = useCallback(
     (event) => {
-      // To prevent the form from redirecting the page
       event.preventDefault();
-      
-
 
       router.push("/verify/upload-selfie");
     },
@@ -66,7 +63,9 @@ export default function FillDetails() {
                   <option key={university}>{university}</option>
                 ))}
               </Select>
-              <Description>We currently only support.</Description>
+              <Description>
+                We currently only support select universities.
+              </Description>
             </Field>
           </FieldGroup>
         </form>
