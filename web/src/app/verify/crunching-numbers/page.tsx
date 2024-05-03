@@ -21,7 +21,7 @@ export default function CrunchingNumbers() {
         a coffee and relax, we will notify you once we are done.
       </DialogDescription>
       <DialogBody>
-        <div className="flex justify-center animate-pulse mb-8">
+        <div className="flex justify-center animate-pulse my-4  ">
           <Image src="/robot.png" alt="robot" width="200" height="200" />
         </div>
 
