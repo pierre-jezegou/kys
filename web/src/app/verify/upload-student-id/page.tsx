@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import { Field } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
 import { Button } from "@/components/catalyst/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
   DialogActions,
   DialogBody,
@@ -11,8 +11,11 @@ import {
   DialogTitle,
 } from "@/components/catalyst/dialog";
 
+import uploadToS3 from "@/utils/uploadToS3";
+
 export default function UploadStudentCard() {
   const router = useRouter();
+
   const [studentCard, setStudentCard] = useState<File | null>(null);
 
   const handleStudentCardChange = useCallback(
@@ -22,9 +25,16 @@ export default function UploadStudentCard() {
     [setStudentCard]
   );
 
-  const handleSubmit = useCallback((event) => {
-    // Redirect to `verify/upload-student-id`
-  }, []);
+  const handleSubmit = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      uploadToS3("", studentCard as File);
+
+      router.push("/verify/crunching-numbers");
+    },
+    [studentCard, router]
+  );
 
   return (
     <>
@@ -35,11 +45,11 @@ export default function UploadStudentCard() {
       <DialogBody>
         <form>
           <Field>
-            {/* <Label>Selfie</Label> */}
+            {/* <Label>Student Card</Label> */}
             <Input
               type="file"
               accept="image/*"
-              capture="user"
+              capture="environment"
               onChange={handleStudentCardChange}
             />
           </Field>
