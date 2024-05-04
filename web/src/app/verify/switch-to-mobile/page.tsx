@@ -6,6 +6,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
+import Image from "next/image";
 
 export default function SwitchToPhone() {
   return (
@@ -17,13 +18,8 @@ export default function SwitchToPhone() {
         here. Scan the QR code below to switch to your phone.
       </DialogDescription>
       <DialogBody>
-        <div className="flex justify-center my-16">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${process.env.NEXT_PUBLIC_WEB_URL}/verify/fill-details`}
-            alt="robot"
-            width="200"
-            height="200"
-          />
+        <div className="flex justify-center">
+          <Image src="/qrcode.svg" alt="QR code" width="200" height="200" />
         </div>
       </DialogBody>
       <DialogActions>
