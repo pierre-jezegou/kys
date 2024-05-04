@@ -18,10 +18,9 @@ Guiding principles:
 ## State Machine
 
 ```mermaid
-stateDiagram
-    [*] -- Create Session --> Created
-    Created -- S3 Event Notification --> SelfieUploaded
-    SelfieUploaded -- S3 Event Notification --> StudentIDUploaded
+flowchart TD
+    Created-- S3 Event Notification -->SelfieUploaded
+    SelfieUploaded-- S3 Event Notification -->StudentIDUploaded
 ```
 
 
