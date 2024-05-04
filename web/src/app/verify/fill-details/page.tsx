@@ -28,9 +28,9 @@ const universities = [
 export default function FillDetails() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [university, setUniversity] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -45,6 +45,9 @@ export default function FillDetails() {
         })
         .then((sessionId) => {
           router.push(`/verify/upload-selfie/${sessionId}`);
+        })
+        .finally(() => {
+          setLoading(false);
         });
     },
     [name, university, router, setLoading]
