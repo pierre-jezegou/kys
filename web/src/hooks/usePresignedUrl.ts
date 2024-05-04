@@ -6,7 +6,7 @@ type UsePresignedUrl = {
   isLoading: boolean;
 };
 
-export function usePresignedSelfieUrl(sessionId: string): UsePresignedUrl {
+function usePresignedUrl(url: string, sessionId: string): UsePresignedUrl {
   const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,18 +14,20 @@ export function usePresignedSelfieUrl(sessionId: string): UsePresignedUrl {
   useEffect(() => {
     const fetchPresignedUrl = async () => {
       try {
-        const response = await fetch(
-          `https://8taeoi4dm2.execute-api.us-east-1.amazonaws.com/presigned-url/selfie?session_id=${sessionId}`,
-          {
-            method: "GET",
-          }
-        );
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId }),
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch presigned URL");
         }
 
         const { presignedUrl } = await response.json();
+
         setPresignedUrl(presignedUrl);
       } catch (error) {
         setError(error as Error);
@@ -35,42 +37,21 @@ export function usePresignedSelfieUrl(sessionId: string): UsePresignedUrl {
     };
 
     fetchPresignedUrl();
-  }, [sessionId]);
+  }, [url, sessionId]);
 
   return { presignedUrl, error, isLoading };
 }
 
+export function usePresignedSelfieUrl(sessionId: string): UsePresignedUrl {
+  return usePresignedUrl(
+    `${process.env.NEXT_PUBLIC_API_URL}/create-session/student-id`,
+    sessionId
+  );
+}
 
 export function usePresignedStudentIdUrl(sessionId: string): UsePresignedUrl {
-  const [presignedUrl, setPresignedUrl] = useState<string | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPresignedUrl = async () => {
-      try {
-        const response = await fetch(
-          `https://8taeoi4dm2.execute-api.us-east-1.amazonaws.com/presigned-url/student-id?session_id=${sessionId}`,
-          {
-            method: "GET",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch presigned URL");
-        }
-
-        const { presignedUrl } = await response.json();
-        setPresignedUrl(presignedUrl);
-      } catch (error) {
-        setError(error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPresignedUrl();
-  }, [sessionId]);
-
-  return { presignedUrl, error, isLoading };
+  return usePresignedUrl(
+    `${process.env.NEXT_PUBLIC_API_URL}/create-session/id`,
+    sessionId
+  );
 }
