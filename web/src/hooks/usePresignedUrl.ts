@@ -26,7 +26,7 @@ function usePresignedUrl(url: string, sessionId: string): UsePresignedUrl {
           throw new Error("Failed to fetch presigned URL");
         }
 
-        const { presignedUrl } = await response.json();
+        const presignedUrl = await response.json();
 
         setPresignedUrl(presignedUrl);
       } catch (error) {

@@ -9,8 +9,7 @@ import {
 import { Field } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
 import Spinner from "@/components/spinner";
-import { usePresignedSelfieUrl } from "@/hooks/usePresignedUrl";
-import uploadToS3 from "@/utils/uploadToS3";
+import { uploadToS3 } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -23,10 +22,7 @@ type Params = {
 export default function UploadSelfie({ params: { sessionId } }: Params) {
   const router = useRouter();
 
-  const { presignedUrl, error, isLoading } = usePresignedSelfieUrl(sessionId);
-
   const [selfie, setSelfie] = useState<File | null>(null);
-
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSelfieChange = useCallback(
@@ -40,13 +36,17 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (!presignedUrl || !selfie) {
+      if (!selfie) {
         return;
       }
 
       setIsUploading(true);
 
-      uploadToS3(presignedUrl, selfie)
+      uploadToS3(
+        `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/selfie`,
+        selfie,
+        sessionId
+      )
         .then(() => {
           router.push(`/verify/upload-student-id/${sessionId}`);
         })
@@ -54,17 +54,8 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
           setIsUploading(false);
         });
     },
-    [presignedUrl, selfie, router, sessionId]
+    [selfie, sessionId, router]
   );
-
-  if (error) {
-    return (
-      <p>
-        Oops! We couldn&apos;t load the necessary details for your selfie.
-        Please try again later.
-      </p>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -86,7 +77,7 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
       </DialogBody>
       <DialogActions>
         <Button plain>Cancel</Button>
-        <Button disabled={isLoading || !selfie || isUploading} type="submit">
+        <Button disabled={!selfie || isUploading} type="submit">
           {isUploading ? <Spinner /> : null}
           Upload and Continue
         </Button>
