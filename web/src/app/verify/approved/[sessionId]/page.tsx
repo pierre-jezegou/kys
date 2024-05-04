@@ -6,19 +6,25 @@ import {
 } from "@/components/catalyst/dialog";
 import Image from "next/image";
 
-export default function Denied() {
+type Params = {
+  params: {
+    sessionId: string;
+  };
+};
+
+export default function Approved({ params: { sessionId } }: Params) {
   return (
     <>
-      <DialogTitle>Denied</DialogTitle>
+      <DialogTitle>Approved</DialogTitle>
       <DialogDescription>
-        Your identity could not be verified. Please try again or contact
-        support. We will redirect you back to where you left off.
+        Your identity has been successfully verified. We will redirect you back
+        to where you left off.
       </DialogDescription>
       <DialogBody>
         <div className="flex justify-center my-4">
           <Image
-            src="/miroodles/color/rain.svg"
-            alt="rain"
+            src="/miroodles/color/flower.svg"
+            alt="robot"
             width="200"
             height="200"
           />

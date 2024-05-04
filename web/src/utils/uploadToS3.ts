@@ -5,5 +5,8 @@ export default function uploadToS3(url: string, file: File) {
   return fetch(url, {
     method: "PUT",
     body: formData,
+    headers: {
+      "Content-Type": "image/png",
+    },
   });
 }

@@ -5,6 +5,15 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { Fragment } from "react";
 
+import {
+  Pagination,
+  PaginationGap,
+  PaginationList,
+  PaginationNext,
+  PaginationPage,
+  PaginationPrevious,
+} from "@/components/catalyst/pagination";
+
 const user = {
   name: "Tom Cook",
   email: "tom@example.com",
@@ -16,6 +25,7 @@ const navigation = [
   { name: "Dashboard", href: "#", current: false },
   { name: "Audit", href: "#", current: true },
   { name: "Reports", href: "#", current: false },
+  { name: "Support", href: "#", current: false },
 ];
 
 const userNavigation = [

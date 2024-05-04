@@ -16,6 +16,7 @@ import { Input } from "@/components/catalyst/input";
 import { Select } from "@/components/catalyst/select";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { createSession } from "@/lib/api";
 
 const universities = [
   "Universitat Politècnica de Catalunya",
@@ -33,9 +34,17 @@ export default function FillDetails() {
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      router.push("/verify/upload-selfie");
+      // Save the details to the database
+      createSession(name, university)
+        .catch((error) => {
+          console.error(error);
+          throw error;
+        })
+        .then((sessionId) => {
+          router.push(`/verify/upload-selfie/${sessionId}`);
+        });
     },
-    [router]
+    [name, university, router]
   );
 
   return (
@@ -50,7 +59,6 @@ export default function FillDetails() {
             <Label>Name</Label>
             <Input type="text" onChange={(e) => setName(e.target.value)} />
           </Field>
-
           <Field>
             <Label>University</Label>
             <Select
@@ -63,7 +71,7 @@ export default function FillDetails() {
               ))}
             </Select>
             <Description>
-              We currently only support select universities.
+              We currently only support the best universities in the world.
             </Description>
           </Field>
         </FieldGroup>

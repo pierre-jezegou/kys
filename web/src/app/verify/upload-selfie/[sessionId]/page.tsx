@@ -1,18 +1,28 @@
 "use client";
-import { useState, useCallback } from "react";
-import { Field } from "@/components/catalyst/fieldset";
-import { Input } from "@/components/catalyst/input";
 import { Button } from "@/components/catalyst/button";
-import { useRouter } from "next/navigation";
 import {
   DialogActions,
   DialogBody,
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
+import { Field } from "@/components/catalyst/fieldset";
+import { Input } from "@/components/catalyst/input";
+import { usePresignedSelfieUrl } from "@/hooks/usePresignedUrl";
+import uploadToS3 from "@/utils/uploadToS3";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
-export default function UploadSelfie() {
+type Params = {
+  params: {
+    sessionId: string;
+  };
+};
+
+export default function UploadSelfie({ params: { sessionId } }: Params) {
   const router = useRouter();
+
+  const { presignedUrl, error, isLoading } = usePresignedSelfieUrl(sessionId);
 
   const [selfie, setSelfie] = useState<File | null>(null);
 
@@ -26,10 +36,21 @@ export default function UploadSelfie() {
   const handleSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      router.push("/verify/upload-student-id");
+
+      if (!presignedUrl || !selfie) {
+        return;
+      }
+
+      uploadToS3(presignedUrl, selfie).then(() => {
+        router.push(`/verify/upload-student-id/${sessionId}`);
+      });
     },
-    [router]
+    [presignedUrl, selfie, router, sessionId]
   );
+
+  if (error) {
+    return <p>Failed to fetch presigned URL</p>;
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -50,7 +71,7 @@ export default function UploadSelfie() {
       </DialogBody>
       <DialogActions>
         <Button plain>Cancel</Button>
-        <Button disabled={!selfie} type="submit">
+        <Button disabled={isLoading || !selfie} type="submit">
           Next
         </Button>
       </DialogActions>

@@ -12,9 +12,19 @@ import {
 } from "@/components/catalyst/dialog";
 
 import uploadToS3 from "@/utils/uploadToS3";
+import { usePresignedStudentIdUrl } from "@/hooks/usePresignedUrl";
 
-export default function UploadStudentCard() {
+type Params = {
+  params: {
+    sessionId: string;
+  };
+};
+
+export default function UploadStudentCard({ params: { sessionId } }: Params) {
   const router = useRouter();
+
+  const { presignedUrl, error, isLoading } =
+    usePresignedStudentIdUrl(sessionId);
 
   const [studentCard, setStudentCard] = useState<File | null>(null);
 
@@ -29,17 +39,26 @@ export default function UploadStudentCard() {
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      uploadToS3(
-        "https://essai-boto3-s3.s3.amazonaws.com/blablablabla/student-id.png",
-        studentCard as File
-      ).then(() => {
-        router.push("/verify/crunching-numbers");
-      });
+      if (!presignedUrl || !studentCard) {
+        return;
+      }
 
-      router.push("/verify/crunching-numbers");
+      uploadToS3(presignedUrl, studentCard).then(() => {
+        const approved = Math.random() > 0.5;
+
+        if (approved) {
+          router.push(`/verify/approved/${sessionId}`);
+        } else {
+          router.push(`/verify/denied/${sessionId}`);
+        }
+      });
     },
-    [studentCard, router]
+    [presignedUrl, studentCard, router, sessionId]
   );
+
+  if (error) {
+    return <p>Failed to fetch presigned URL</p>;
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -52,6 +71,7 @@ export default function UploadStudentCard() {
           {/* <Label>Student Card</Label> */}
           <Input
             type="file"
+            name="file"
             accept="image/*"
             capture="environment"
             onChange={handleStudentCardChange}
@@ -60,7 +80,7 @@ export default function UploadStudentCard() {
       </DialogBody>
       <DialogActions>
         <Button plain>Cancel</Button>
-        <Button disabled={!studentCard} type="submit">
+        <Button disabled={isLoading || !studentCard} type="submit">
           Next
         </Button>
       </DialogActions>

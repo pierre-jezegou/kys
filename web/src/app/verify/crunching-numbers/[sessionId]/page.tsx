@@ -1,14 +1,20 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import {
   DialogBody,
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function CrunchingNumbers() {
+type Params = {
+  params: {
+    sessionId: string;
+  };
+};
+
+export default function CrunchingNumbers({ params: { sessionId } }: Params) {
   const router = useRouter();
 
   useEffect(() => {
