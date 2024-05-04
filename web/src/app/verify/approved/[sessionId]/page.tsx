@@ -15,10 +15,9 @@ type Params = {
 export default function Approved({ params: { sessionId } }: Params) {
   return (
     <>
-      <DialogTitle>Approved</DialogTitle>
+ <DialogTitle>Tada! You&apos;re Verified!</DialogTitle>
       <DialogDescription>
-        Your identity has been successfully verified. We will redirect you back
-        to where you left off.
+        Awesome news! Your identity has been verified. Hang tight, we&apos;ll whisk you right back to where you left off in just a moment.
       </DialogDescription>
       <DialogBody>
         <div className="flex justify-center my-4">

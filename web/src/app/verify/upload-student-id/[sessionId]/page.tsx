@@ -1,18 +1,19 @@
 "use client";
-import { useState, useCallback } from "react";
-import { Field } from "@/components/catalyst/fieldset";
-import { Input } from "@/components/catalyst/input";
 import { Button } from "@/components/catalyst/button";
-import { useRouter, useParams } from "next/navigation";
 import {
   DialogActions,
   DialogBody,
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
+import { Field } from "@/components/catalyst/fieldset";
+import { Input } from "@/components/catalyst/input";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
-import uploadToS3 from "@/utils/uploadToS3";
+import Spinner from "@/components/spinner";
 import { usePresignedStudentIdUrl } from "@/hooks/usePresignedUrl";
+import uploadToS3 from "@/utils/uploadToS3";
 
 type Params = {
   params: {
@@ -27,6 +28,8 @@ export default function UploadStudentCard({ params: { sessionId } }: Params) {
     usePresignedStudentIdUrl(sessionId);
 
   const [studentCard, setStudentCard] = useState<File | null>(null);
+
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleStudentCardChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,28 +46,31 @@ export default function UploadStudentCard({ params: { sessionId } }: Params) {
         return;
       }
 
-      uploadToS3(presignedUrl, studentCard).then(() => {
-        const approved = Math.random() > 0.5;
+      setIsUploading(true);
 
-        if (approved) {
-          router.push(`/verify/approved/${sessionId}`);
-        } else {
-          router.push(`/verify/denied/${sessionId}`);
-        }
+      uploadToS3(presignedUrl, studentCard).then(() => {
+        router.push(`/verify/crunching-numbers/${sessionId}`);
+      }).finally(() => {
+        setIsUploading(false);
       });
     },
-    [presignedUrl, studentCard, router, sessionId]
+    [presignedUrl, studentCard, router, sessionId, setIsUploading]
   );
 
   if (error) {
-    return <p>Failed to fetch presigned URL</p>;
+    return (
+      <p>
+        Oops! We couldn&apos;t load the necessary details for your selfie.
+        Please try again later.
+      </p>
+    );
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogTitle>Student Card</DialogTitle>
+      <DialogTitle>Almost There!</DialogTitle>
       <DialogDescription>
-        Show us your student card. Try to fit the entire card in the frame.
+        We&apos;re excited to see your student card! Please make sure the entire card is visible in the photo to help us verify you swiftly.
       </DialogDescription>
       <DialogBody>
         <Field>
@@ -80,8 +86,9 @@ export default function UploadStudentCard({ params: { sessionId } }: Params) {
       </DialogBody>
       <DialogActions>
         <Button plain>Cancel</Button>
-        <Button disabled={isLoading || !studentCard} type="submit">
-          Next
+        <Button disabled={isLoading || !studentCard || isUploading} type="submit">
+          {isUploading ? <Spinner /> : null}
+          Upload and Continue
         </Button>
       </DialogActions>
     </form>

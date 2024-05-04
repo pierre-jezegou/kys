@@ -23,9 +23,9 @@ export default function Verify() {
   }, [router]);
   return (
     <>
-      <DialogTitle>Start Verification</DialogTitle>
+     <DialogTitle>Let&apos;s Get You Verified!</DialogTitle>
       <DialogDescription>
-        You only have to snap a picture of your ID and a selfie to get verified.
+        Verification is a snap! Just take a quick photo of your ID and a selfie, and you&apos;ll be all set.
       </DialogDescription>
       <DialogBody>
         <div className="flex justify-center my-4">
@@ -38,7 +38,7 @@ export default function Verify() {
         </div>
       </DialogBody>
       <DialogActions>
-        <Button onClick={handleStartVerification}>Start</Button>
+        <Button onClick={handleStartVerification}>Kick Off Verification</Button>
       </DialogActions>
     </>
   );

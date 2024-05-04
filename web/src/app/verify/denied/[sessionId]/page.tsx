@@ -15,10 +15,11 @@ type Params = {
 export default function Denied({ params: { sessionId } }: Params) {
   return (
     <>
-      <DialogTitle>Denied</DialogTitle>
+      <DialogTitle>Hmm, Something&apos;s Up!</DialogTitle>
       <DialogDescription>
-        Your identity could not be verified. Please try again or contact
-        support. We will redirect you back to where you left off.
+        Oops! We couldn&apos;t verify your identity this time. No worries,
+        though! You can try again or reach out to support for assistance.
+        We&apos;re here to help you through it.
       </DialogDescription>
       <DialogBody>
         <div className="flex justify-center my-4">

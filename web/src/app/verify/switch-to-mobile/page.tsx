@@ -11,12 +11,13 @@ import Image from "next/image";
 export default function SwitchToPhone() {
   return (
     <>
-      <DialogTitle>Easier on a phone</DialogTitle>
+      <DialogTitle>Switch to Phone? It&apos;s a Breeze!</DialogTitle>
       <DialogDescription>
-        We see that you are on a desktop. The process is a bit easier on a
-        phone, but if you have a selfie and a photo of your ID, you can continue
-        here. Scan the QR code below to switch to your phone.
+        Looks like you&apos;re using a desktop! This process might be smoother and
+        quicker on your phone. Feel free to keep going here, or simply scan
+        the QR code below to switch over to your mobile device.
       </DialogDescription>
+
       <DialogBody>
         <div className="flex justify-center">
           <Image src="/qrcode.svg" alt="QR code" width="200" height="200" />
@@ -24,7 +25,7 @@ export default function SwitchToPhone() {
       </DialogBody>
       <DialogActions>
         <Button plain>Cancel</Button>
-        <Button href={`/verify/fill-details`}>Next</Button>
+        <Button href={`/verify/fill-details`}>Let&apos;s Go!</Button>
       </DialogActions>
     </>
   );

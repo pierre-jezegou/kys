@@ -8,6 +8,7 @@ import {
 } from "@/components/catalyst/dialog";
 import { Field } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
+import Spinner from "@/components/spinner";
 import { usePresignedSelfieUrl } from "@/hooks/usePresignedUrl";
 import uploadToS3 from "@/utils/uploadToS3";
 import { useRouter } from "next/navigation";
@@ -26,6 +27,8 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
 
   const [selfie, setSelfie] = useState<File | null>(null);
 
+  const [isUploading, setIsUploading] = useState(false);
+
   const handleSelfieChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setSelfie(event.target.files?.[0] || null);
@@ -41,22 +44,34 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
         return;
       }
 
-      uploadToS3(presignedUrl, selfie).then(() => {
-        router.push(`/verify/upload-student-id/${sessionId}`);
-      });
+      setIsUploading(true);
+
+      uploadToS3(presignedUrl, selfie)
+        .then(() => {
+          router.push(`/verify/upload-student-id/${sessionId}`);
+        })
+        .finally(() => {
+          setIsUploading(false);
+        });
     },
     [presignedUrl, selfie, router, sessionId]
   );
 
   if (error) {
-    return <p>Failed to fetch presigned URL</p>;
+    return (
+      <p>
+        Oops! We couldn&apos;t load the necessary details for your selfie.
+        Please try again later.
+      </p>
+    );
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogTitle>Take a selfie</DialogTitle>
+      <DialogTitle>Show Us Your Smile!</DialogTitle>
       <DialogDescription>
-        Snap a selfie to verify your identity.
+        Ready for your close-up? Snap a quick selfie to continue with your
+        identity verification.
       </DialogDescription>
       <DialogBody>
         <Field>
@@ -71,8 +86,9 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
       </DialogBody>
       <DialogActions>
         <Button plain>Cancel</Button>
-        <Button disabled={isLoading || !selfie} type="submit">
-          Next
+        <Button disabled={isLoading || !selfie || isUploading} type="submit">
+          {isUploading ? <Spinner /> : null}
+          Upload and Continue
         </Button>
       </DialogActions>
     </form>

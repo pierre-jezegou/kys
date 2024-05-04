@@ -55,9 +55,10 @@ export default function FillDetails() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <DialogTitle>About You</DialogTitle>
+      <DialogTitle>Let&apos;s Get to Know You!</DialogTitle>
       <DialogDescription>
-        Tell us a bit about yourself. This will help us verify your identity.
+        We&apos;re excited to learn a little about you! Just a few quick details
+        to help verify your identity.
       </DialogDescription>
       <DialogBody>
         <FieldGroup>
@@ -77,7 +78,7 @@ export default function FillDetails() {
               ))}
             </Select>
             <Description>
-              We currently only support the best universities in the world.
+              Choose from some of the world&apos;s top universities!
             </Description>
           </Field>
         </FieldGroup>
@@ -85,8 +86,8 @@ export default function FillDetails() {
       <DialogActions>
         <Button plain>Cancel</Button>
         <Button disabled={!name || !university || loading} type="submit">
-          {loading ? <Spinner /> : <></>}
-          Next
+          {loading ? <Spinner /> : null}
+          Let&apos;s Continue!
         </Button>
       </DialogActions>
     </form>
