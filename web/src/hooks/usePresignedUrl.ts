@@ -44,14 +44,14 @@ function usePresignedUrl(url: string, sessionId: string): UsePresignedUrl {
 
 export function usePresignedSelfieUrl(sessionId: string): UsePresignedUrl {
   return usePresignedUrl(
-    `${process.env.NEXT_PUBLIC_API_URL}/create-session/student-id`,
+    `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/selfie`,
     sessionId
   );
 }
 
 export function usePresignedStudentIdUrl(sessionId: string): UsePresignedUrl {
   return usePresignedUrl(
-    `${process.env.NEXT_PUBLIC_API_URL}/create-session/id`,
+    `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/student-id`,
     sessionId
   );
 }
