@@ -15,6 +15,17 @@ Guiding principles:
 | `POST /presigned-url/selfie` | Create a presigned URL for uploading a file to S3 |
 | `POST /presigned-url/student-id` | Create a presigned URL for uploading a file to S3 |
 
+## State Machine
+
+```mermaid
+stateDiagram
+    [*] -- Create Session --> Created
+    Created -- S3 Event Notification --> SelfieUploaded
+    SelfieUploaded -- S3 Event Notification --> StudentIDUploaded
+```
+
+
+
 ## Verification Flow
 
 ```mermaid
