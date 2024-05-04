@@ -67,6 +67,18 @@ const sessions: Session[] = [
   },
 ];
 
+// Status explanation
+
+const statusExplanation = {
+  created: "Created",
+  "details-submitted": "Details submitted",
+  "selfie-submitted": "Selfie submitted",
+  "student-id-submitted": "Student ID submitted",
+  "selfie-matched": "Selfie matched",
+  "student-id-matched": "Student ID matched",
+  completed: "Completed",
+};
+
 function SessionsTable({ sessions }: any) {
   return (
     <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
@@ -95,7 +107,7 @@ function SessionsTable({ sessions }: any) {
             </TableCell>
             {/* Only use stepper for desktop */}
             <TableCell className="hidden lg:table-cell">
-              <Stepper />
+              {statusExplanation[session.status]}
             </TableCell>
             <TableCell>
               {session.result == "approved" ? (
@@ -112,5 +124,9 @@ function SessionsTable({ sessions }: any) {
 }
 
 export default function Audit() {
-  return <SessionsTable sessions={sessions} />;
+  return (
+    <div className="">
+      <SessionsTable sessions={sessions} />
+    </div>
+  );
 }
