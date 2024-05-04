@@ -14,9 +14,10 @@ import {
 } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
 import { Select } from "@/components/catalyst/select";
+import Spinner from "@/components/spinner";
+import { createSession } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { createSession } from "@/lib/api";
 
 const universities = [
   "Universitat Politècnica de Catalunya",
@@ -27,6 +28,7 @@ const universities = [
 export default function FillDetails() {
   const router = useRouter();
 
+  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [university, setUniversity] = useState("");
 
@@ -34,6 +36,7 @@ export default function FillDetails() {
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
+      setLoading(true);
       // Save the details to the database
       createSession(name, university)
         .catch((error) => {
@@ -44,7 +47,7 @@ export default function FillDetails() {
           router.push(`/verify/upload-selfie/${sessionId}`);
         });
     },
-    [name, university, router]
+    [name, university, router, setLoading]
   );
 
   return (
@@ -77,10 +80,9 @@ export default function FillDetails() {
         </FieldGroup>
       </DialogBody>
       <DialogActions>
-        <Button plain onClick={() => {}}>
-          Cancel
-        </Button>
-        <Button disabled={!name || !university} type="submit">
+        <Button plain>Cancel</Button>
+        <Button disabled={!name || !university || loading} type="submit">
+          {loading ? <Spinner /> : <></>}
           Next
         </Button>
       </DialogActions>
