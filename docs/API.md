@@ -18,9 +18,14 @@ Guiding principles:
 ## State Machine
 
 ```mermaid
-flowchart TD
-    Created-- S3 Event Notification -->SelfieUploaded
-    SelfieUploaded-- S3 Event Notification -->StudentIDUploaded
+stateDiagram-v2
+    [*] --> Created
+    Created --> Uploading
+    Uploading --> Verifying
+    Verifying --> Verified
+    Verified --> [*]
+    Verified --> Failed
+    Failed --> [*]
 ```
 
 
