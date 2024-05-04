@@ -14,7 +14,12 @@ export default function Verify() {
   const router = useRouter();
 
   const handleStartVerification = useCallback(() => {
-    router.push("/verify/fill-details");
+    // Check if the user is on a mobile device
+    if (window.innerWidth > 768) {
+      router.push("/verify/switch-to-mobile");
+    } else {
+      router.push("/verify/fill-details");
+    }
   }, [router]);
   return (
     <>
