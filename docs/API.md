@@ -21,7 +21,8 @@ sequenceDiagram
 
     User->>Webshop: Fill checkout form (name, university)
     Webshop->>Server: Create verification session
-    Server->>DynamoDB: Save form data
+    Server->>DynamoDB: Create session document
+    DynamoDB-->>Server: Session document created
     Server->>Webshop: Verification session created
     Webshop-->>User: Redirect to verification service
 
