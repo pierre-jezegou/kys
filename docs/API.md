@@ -21,7 +21,7 @@ Guiding principles:
 stateDiagram-v2
     state if_state <<choice>>
 
-    [*] --> Created
+    [*] --> Created: Name and university provided
     Created --> SelfieUploaded: S3 Notification Event (Selfie)
     SelfieUploaded --> StudentIDUploaded: S3 Notification Event (Student ID)
     StudentIDUploaded --> if_state
