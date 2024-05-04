@@ -15,51 +15,49 @@ sequenceDiagram
     participant Webshop
     participant User
     participant Server
-    participant AWS
+    participant S3
+    participant DynamoDB
+    participant Rekognition
 
     User->>Webshop: Fill checkout form (name, university)
     Webshop->>Server: Create verification session
-    Server->>AWS: Create verification session
-    AWS-->>Server: Verification session created
-    Server-->>Webshop: Verification session created
+    Server->>DynamoDB: Save form data
+    Server->>Webshop: Verification session created
     Webshop-->>User: Redirect to verification service
 
     par Upload Student ID and Selfie
         User->>Server: Request pre-signed URL for student ID upload
-        Server->>AWS: Request pre-signed URL for student ID upload
-        AWS-->>Server: Pre-signed URL created
+        Server->>S3: Request pre-signed URL for student ID upload
+        S3-->>Server: Pre-signed URL created
         Server-->>User: Pre-signed URL created
-        User->>AWS: Upload student ID
+        User->>S3: Upload student ID
     and
         User->>Server: Request pre-signed URL for selfie upload
-        Server->>AWS: Request pre-signed URL for selfie upload
-        AWS-->>Server: Pre-signed URL created
+        Server->>S3: Request pre-signed URL for selfie upload
+        S3-->>Server: Pre-signed URL created
         Server-->>User: Pre-signed URL created
-        User->>AWS: Upload selfie
-    end
-    
-    par [Verification]
-        Server->>AWS: Extract text from student ID
-        AWS-->>Server: Text extracted
-    and 
-        Server->>AWS: Extract face from selfie
-        AWS-->>Server: Face extracted
-    and 
-        Server->>AWS: Extract face from student ID
-        AWS-->>Server: Face extracted
+        User->>S3: Upload selfie
     end
 
-    Server->>AWS: Compare faces
-    AWS-->>Server: Face comparison result
-    
-    Server->>Server: Verify text in student ID
-    Server->>AWS: Update verification status
+    par [Verification]
+        Server->>Rekognition: Extract text from student ID
+        Rekognition-->>Server: Text extracted
+    and
+        Server->>Rekognition: Extract face from selfie
+        Rekognition-->>Server: Face extracted
+    and
+        Server->>Rekognition: Extract face from student ID
+        Rekognition-->>Server: Face extracted
+    end
+
+    Server->>Rekognition: Compare faces
+    Rekognition-->>Server: Face comparison result
+
+    Server->>DynamoDB: Update verification status
 
     User->>Server: Poll verification status
-    Server->>AWS: Poll verification status
-    AWS-->>Server: Verification status
+    Server->>DynamoDB: Poll verification status
+    DynamoDB-->>Server: Verification status
     Server-->>User: Verification status
     User->>Webshop: Redirect to checkout
-
-
 ```
