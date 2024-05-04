@@ -13,7 +13,7 @@ export default function CrunchingNumbers() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      // router.push("/verify/approved");
+      router.push("/verify/approved");
     }, 5000);
 
     return () => {
