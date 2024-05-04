@@ -20,8 +20,9 @@ Guiding principles:
 ```mermaid
 stateDiagram-v2
     [*] --> Created
-    Created --> Uploading
-    Uploading --> Verifying
+    Created --> SelfieUploaded: S3 Notification
+    SelfieUploaded --> StudentIDUploaded: S3 Notification
+    StudentIDUploaded --> Verifying
     Verifying --> Verified
     Verified --> [*]
     Verified --> Failed
