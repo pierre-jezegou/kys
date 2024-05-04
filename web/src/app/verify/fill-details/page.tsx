@@ -30,7 +30,7 @@ export default function FillDetails() {
   const [university, setUniversity] = useState("");
 
   const handleSubmit = useCallback(
-    (event) => {
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
       router.push("/verify/upload-selfie");
@@ -39,45 +39,43 @@ export default function FillDetails() {
   );
 
   return (
-    <>
+    <form onSubmit={handleSubmit}>
       <DialogTitle>About You</DialogTitle>
       <DialogDescription>
         Tell us a bit about yourself. This will help us verify your identity.
       </DialogDescription>
       <DialogBody>
-        <form>
-          <FieldGroup>
-            <Field>
-              <Label>Name</Label>
-              <Input type="text" onChange={(e) => setName(e.target.value)} />
-            </Field>
+        <FieldGroup>
+          <Field>
+            <Label>Name</Label>
+            <Input type="text" onChange={(e) => setName(e.target.value)} />
+          </Field>
 
-            <Field>
-              <Label>University</Label>
-              <Select
-                name="univeristy"
-                onChange={(e) => setUniversity(e.target.value)}
-              >
-                <option value="">Select a university</option>
-                {universities.map((university) => (
-                  <option key={university}>{university}</option>
-                ))}
-              </Select>
-              <Description>
-                We currently only support select universities.
-              </Description>
-            </Field>
-          </FieldGroup>
-        </form>
+          <Field>
+            <Label>University</Label>
+            <Select
+              name="univeristy"
+              onChange={(e) => setUniversity(e.target.value)}
+            >
+              <option value="">Select a university</option>
+              {universities.map((university) => (
+                <option key={university}>{university}</option>
+              ))}
+            </Select>
+            <Description>
+              We currently only support select universities.
+            </Description>
+          </Field>
+        </FieldGroup>
       </DialogBody>
       <DialogActions>
         <Button plain onClick={() => {}}>
           Cancel
         </Button>
-        <Button disabled={!name || !university} onClick={handleSubmit}>
+        <Button disabled={!name || !university} type="submit">
           Next
         </Button>
       </DialogActions>
-    </>
+    </form>
   );
 }
