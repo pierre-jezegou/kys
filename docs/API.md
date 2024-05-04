@@ -1,12 +1,19 @@
 # API
 
+Guiding principles:
+- RESTful API
+- JSON as the primary data format
+- Event-driven architecture
+- Strongly asynchronous
+
 ## Endpoints
 
 | Endpoint              | Description                                       |
 | --------------------- | ------------------------------------------------- |
 | `POST /session`       | Create a new session, returns a session ID        |
 | `GET /session`        | Get a session by ID                               |
-| `POST /presigned-url` | Create a presigned URL for uploading a file to S3 |
+| `POST /presigned-url/selfie` | Create a presigned URL for uploading a file to S3 |
+| `POST /presigned-url/student-id` | Create a presigned URL for uploading a file to S3 |
 
 ## Verification Flow
 
