@@ -56,9 +56,12 @@ sequenceDiagram
 
     Server->>DynamoDB: Update verification status
 
-    User->>Server: Poll verification status
-    Server->>DynamoDB: Poll verification status
-    DynamoDB-->>Server: Verification status
-    Server-->>User: Verification status
-    User->>Webshop: Redirect to checkout
+    loop Until verification is complete
+        User->>Server: Get verification status
+        Server->>DynamoDB: Get verification status
+        DynamoDB-->>Server: Verification status
+        Server-->>User: Verification status
+    end
+
+    User->>Webshop: Redirect to order confirmation
 ```
