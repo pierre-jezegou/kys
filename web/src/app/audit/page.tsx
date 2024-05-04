@@ -9,36 +9,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/catalyst/table";
-import Stepper from "@/components/stepper";
 
-type Status =
+type State =
   | "created"
   | "details-submitted"
   | "selfie-submitted"
   | "student-id-submitted"
   | "selfie-matched"
+  | "selfie-match-failed"
   | "student-id-matched"
-  | "completed";
+  | "student-id-match-failed";
 
-type Result = "in-progress" | "approved" | "denied";
-
-type Session =
-  | {
-      id: number;
-      name: string;
-      university: string;
-      created: string;
-      status: Exclude<Status, "completed">;
-      result: "in-progress";
-    }
-  | {
-      id: number;
-      name: string;
-      university: string;
-      created: string;
-      status: "completed";
-      result: Exclude<Result, "in-progress">;
-    };
+type Session = {
+  id: number;
+  name: string;
+  university: string;
+  created: string;
+  state: State;
+};
 
 const sessions: Session[] = [
   {
@@ -46,37 +34,34 @@ const sessions: Session[] = [
     name: "Vincent Olesen",
     university: "Danmarks Tekniske Universitet",
     created: "2021-01-01",
-    status: "completed",
-    result: "denied",
+    state: "selfie-match-failed",
   },
   {
     id: 2,
     name: "Pierre Jezegou",
     university: "École Centrale de Lille",
     created: "2021-01-01",
-    status: "completed",
-    result: "approved",
+    state: "student-id-matched",
   },
   {
     id: 3,
     name: "Vanja Vidmark",
     university: "KTH Royal Institute of Technology",
     created: "2021-01-01",
-    status: "completed",
-    result: "approved",
+    state: "selfie-submitted",
   },
 ];
 
-// Status explanation
-
-const statusExplanation = {
-  created: "Created",
-  "details-submitted": "Details submitted",
-  "selfie-submitted": "Selfie submitted",
-  "student-id-submitted": "Student ID submitted",
-  "selfie-matched": "Selfie matched",
-  "student-id-matched": "Student ID matched",
-  completed: "Completed",
+const statusExplanation: Record<State, string> = {
+  created: "A verification session has been created.",
+  "details-submitted": "The student has submitted their details.",
+  "selfie-submitted": "The student has submitted their selfie.",
+  "student-id-submitted": "The student has submitted their student ID.",
+  "selfie-matched": "The selfie matches the student ID.",
+  "selfie-match-failed": "The selfie does not match the student ID.",
+  "student-id-matched": "The student ID matches the student details.",
+  "student-id-match-failed":
+    "The student ID does not match the student details.",
 };
 
 function SessionsTable({ sessions }: any) {
@@ -90,7 +75,7 @@ function SessionsTable({ sessions }: any) {
         </TableRow>
       </TableHead>
       <TableBody>
-        {sessions.map((session: any) => (
+        {sessions.map((session: Session) => (
           <TableRow key={session.id}>
             <TableCell>
               <div className="flex items-center gap-4">
@@ -107,13 +92,17 @@ function SessionsTable({ sessions }: any) {
             </TableCell>
             {/* Only use stepper for desktop */}
             <TableCell className="hidden lg:table-cell">
-              {statusExplanation[session.status]}
+              {statusExplanation[session.state]}
             </TableCell>
             <TableCell>
-              {session.result == "approved" ? (
+              {session.state == "student-id-matched" ? (
                 <Badge color="lime">Approved</Badge>
+              ) : session.state == "selfie-match-failed" ? (
+                <Badge color="red">Denied</Badge>
+              ) : session.state == "student-id-match-failed" ? (
+                <Badge color="red">Denied</Badge>
               ) : (
-                <Badge color="zinc">Denied</Badge>
+                <Badge color="zinc">In progress</Badge>
               )}
             </TableCell>
           </TableRow>
@@ -124,9 +113,5 @@ function SessionsTable({ sessions }: any) {
 }
 
 export default function Audit() {
-  return (
-    <div className="">
-      <SessionsTable sessions={sessions} />
-    </div>
-  );
+  return <SessionsTable sessions={sessions} />;
 }
