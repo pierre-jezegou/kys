@@ -12,9 +12,11 @@ Guiding principles:
 | Endpoint                         | Description                                       |
 | -------------------------------- | ------------------------------------------------- |
 | `POST /session`                  | Create a new session, returns a session ID        |
-| `GET /session`                   | Get a session by ID                               |
+| `GET /session`                   | Get all sessions, supports pagination             |
+| `GET /session/{id}`              | Get a session by ID                               |
 | `POST /presigned-url/selfie`     | Create a presigned URL for uploading a file to S3 |
 | `POST /presigned-url/student-id` | Create a presigned URL for uploading a file to S3 |
+
 
 ## Internal Lambda Functions
 
