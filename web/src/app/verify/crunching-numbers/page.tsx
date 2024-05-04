@@ -1,18 +1,26 @@
 "use client";
-import { Button } from "@/components/catalyst/button";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import {
-  DialogActions,
   DialogBody,
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
 import Image from "next/image";
-import { useCallback, useState } from "react";
-
-import uploadToS3 from "@/utils/uploadToS3";
-import { Description } from "@/components/catalyst/fieldset";
 
 export default function CrunchingNumbers() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      // router.push("/verify/approved");
+    }, 5000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [router]);
+
   return (
     <>
       <DialogTitle>Crunching Numbers</DialogTitle>
@@ -21,10 +29,14 @@ export default function CrunchingNumbers() {
         a coffee and relax, we will notify you once we are done.
       </DialogDescription>
       <DialogBody>
-        <div className="flex justify-center animate-pulse my-4  ">
-          <Image src="/robot.png" alt="robot" width="200" height="200" />
+        <div className="flex justify-center animate-pulse my-4">
+          <Image
+            src="/miroodles/color/robot.svg"
+            alt="robot"
+            width="200"
+            height="200"
+          />
         </div>
-
       </DialogBody>
     </>
   );

@@ -7,9 +7,11 @@ type LayoutProps = {
 };
 
 export default function Layout({ children }: LayoutProps) {
+  const handleClose = () => {};
+
   return (
     <>
-      <Dialog show={true} onClose={() => {}}>
+      <Dialog open={true} onClose={handleClose}>
         {children}
       </Dialog>
     </>

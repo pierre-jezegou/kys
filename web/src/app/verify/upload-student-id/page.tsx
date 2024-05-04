@@ -19,17 +19,22 @@ export default function UploadStudentCard() {
   const [studentCard, setStudentCard] = useState<File | null>(null);
 
   const handleStudentCardChange = useCallback(
-    (event) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       setStudentCard(event.target.files?.[0] || null);
     },
     [setStudentCard]
   );
 
   const handleSubmit = useCallback(
-    (event) => {
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      uploadToS3("", studentCard as File);
+      uploadToS3(
+        "https://essai-boto3-s3.s3.amazonaws.com/blablablabla/student-id.png",
+        studentCard as File
+      ).then(() => {
+        router.push("/verify/crunching-numbers");
+      });
 
       router.push("/verify/crunching-numbers");
     },
@@ -37,32 +42,28 @@ export default function UploadStudentCard() {
   );
 
   return (
-    <>
+    <form onSubmit={handleSubmit}>
       <DialogTitle>Student Card</DialogTitle>
       <DialogDescription>
         Show us your student card. Try to fit the entire card in the frame.
       </DialogDescription>
       <DialogBody>
-        <form>
-          <Field>
-            {/* <Label>Student Card</Label> */}
-            <Input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleStudentCardChange}
-            />
-          </Field>
-        </form>
+        <Field>
+          {/* <Label>Student Card</Label> */}
+          <Input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleStudentCardChange}
+          />
+        </Field>
       </DialogBody>
       <DialogActions>
-        <Button plain onClick={() => {}}>
-          Cancel
-        </Button>
-        <Button disabled={!studentCard} onClick={handleSubmit}>
+        <Button plain>Cancel</Button>
+        <Button disabled={!studentCard} type="submit">
           Next
         </Button>
       </DialogActions>
-    </>
+    </form>
   );
 }
