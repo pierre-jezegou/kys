@@ -8,25 +8,6 @@
 | `GET /session`        | Get a session by ID                               |
 | `POST /presigned-url` | Create a presigned URL for uploading a file to S3 |
 
-
-## Sequence Diagrams
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-    participant S3
-
-    Client->>Server: POST /session
-    Server->>Client: 200 OK { session ID }
-    Client->>Server: POST /presigned-url
-    Server->>Client: 200 OK { presigned URL }
-    Client->>S3: PUT /presigned-url
-    S3->>Client: 200 OK
-    Client->>Server: GET /session
-    Server->>Client: 200 OK { session }
-```
-
 ## Verification Flow
 
 ```mermaid
@@ -42,19 +23,43 @@ sequenceDiagram
     AWS-->>Server: Verification session created
     Server-->>Webshop: Verification session created
     Webshop-->>User: Redirect to verification service
-    User->>Server: Request pre-signed URL for student ID upload
-    Server->>AWS: Request pre-signed URL for student ID upload
-    AWS-->>Server: Pre-signed URL created
-    Server-->>User: Pre-signed URL created
-    User->>AWS: Upload student ID
-    User->>Server: Request pre-signed URL for selfie upload
-    Server->>AWS: Request pre-signed URL for selfie upload
-    AWS-->>Server: Pre-signed URL created
-    Server-->>User: Pre-signed URL created
-    User->>AWS: Upload selfie
+
+    par Upload Student ID and Selfie
+        User->>Server: Request pre-signed URL for student ID upload
+        Server->>AWS: Request pre-signed URL for student ID upload
+        AWS-->>Server: Pre-signed URL created
+        Server-->>User: Pre-signed URL created
+        User->>AWS: Upload student ID
+    and
+        User->>Server: Request pre-signed URL for selfie upload
+        Server->>AWS: Request pre-signed URL for selfie upload
+        AWS-->>Server: Pre-signed URL created
+        Server-->>User: Pre-signed URL created
+        User->>AWS: Upload selfie
+    end
+    
+    par [Verification]
+        Server->>AWS: Extract text from student ID
+        AWS-->>Server: Text extracted
+    and 
+        Server->>AWS: Extract face from selfie
+        AWS-->>Server: Face extracted
+    and 
+        Server->>AWS: Extract face from student ID
+        AWS-->>Server: Face extracted
+    end
+
+    Server->>AWS: Compare faces
+    AWS-->>Server: Face comparison result
+    
+    Server->>Server: Verify text in student ID
+    Server->>AWS: Update verification status
+
     User->>Server: Poll verification status
     Server->>AWS: Poll verification status
     AWS-->>Server: Verification status
     Server-->>User: Verification status
     User->>Webshop: Redirect to checkout
+
+
 ```
