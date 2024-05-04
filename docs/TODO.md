@@ -1,6 +1,11 @@
 # TODO
 
+- [ ] Make a flowchart, showing the state machine of the application
 - [ ] Migration to `Terraform` for infrastructure provisioning
+
+## Maybe?
+
+- [ ] Use event sourcing to improve auditability
 
 ## Strech Goals
 
