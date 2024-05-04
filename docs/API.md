@@ -19,13 +19,15 @@ Guiding principles:
 
 ```mermaid
 stateDiagram-v2
+    state if_state <<choice>>
+
     [*] --> Created
-    Created --> SelfieUploaded: S3 Notification
-    SelfieUploaded --> StudentIDUploaded: S3 Notification
-    StudentIDUploaded --> Verifying
-    Verifying --> Verified
+    Created --> SelfieUploaded: S3 Notification Event (Selfie)
+    SelfieUploaded --> StudentIDUploaded: S3 Notification Event (Student ID)
+    StudentIDUploaded --> if_state
+    if_state --> Verified: Face and text match
     Verified --> [*]
-    Verified --> Failed
+    if_state --> Failed: Face or text mismatch
     Failed --> [*]
 ```
 
