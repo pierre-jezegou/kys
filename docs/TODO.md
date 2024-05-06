@@ -5,6 +5,7 @@
 
 ## Maybe?
 
+- [ ] Remove expired sessions
 - [ ] Use event sourcing to improve auditability
 
 ## Strech Goals
