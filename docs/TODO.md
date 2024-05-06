@@ -3,6 +3,7 @@
 - [ ] Migrate code `aws-infrastructure` branch to `main` using `chalice`
 - [ ] Provision S3 bucket for image uploads using `Terraform` or `CloudFormation`
 - [ ] Provision DynamoDB table for session management using `Terraform` or `CloudFormation`
+- [ ] Setup CI/CD pipeline for `api` (https://aws.github.io/chalice/topics/cd.html)
 
 ## Maybe?
 
