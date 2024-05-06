@@ -12,6 +12,7 @@
 
 ## Strech Goals
 
+- [ ] "Continue on mobile" support 
 - [ ] Logo verification (Check if the logo on the student card matches the university logo)
 - [ ] Human-in-the-Loop verification on text match failure
 - [ ] Notification service for verification status
