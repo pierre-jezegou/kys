@@ -1,7 +1,8 @@
 # TODO
 
-- [ ] Make a flowchart, showing the state machine of the application
-- [ ] Migration to `Terraform` for infrastructure provisioning
+- [ ] Migrate code `aws-infrastructure` branch to `main` using `chalice`
+- [ ] Provision S3 bucket for image uploads using `Terraform` or `CloudFormation`
+- [ ] Provision DynamoDB table for session management using `Terraform` or `CloudFormation`
 
 ## Maybe?
 
