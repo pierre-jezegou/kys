@@ -14,7 +14,7 @@ type Params = {
 };
 
 export default function SwitchToPhone({ params: { sessionId } }: Params) {
-  const url = encodeURIComponent(
+  const qrcodeUrl = encodeURIComponent(
     `${window.location.origin}/verify/upload-selfie/${sessionId}`
   );
 
@@ -27,9 +27,9 @@ export default function SwitchToPhone({ params: { sessionId } }: Params) {
         the QR code below to switch over to your mobile device.
       </DialogDescription>
       <DialogBody>
-        <div className="flex justify-center my-16">
+        <div className="flex justify-center">
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${url}`}
+            src={`${process.env.NEXT_PUBLIC_API_URL}/qrcode?data=${qrcodeUrl}`}
             alt="QR code"
             width="150"
             height="150"
