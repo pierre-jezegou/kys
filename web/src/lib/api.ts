@@ -2,9 +2,9 @@ export const createSession = async (name: string, university: string) => {
   // Extract base endpoint to the environment
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/session`, {
     method: "POST",
-    // headers: {
-    //   "Content-Type": "application/json",
-    // },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       name,
       university,
