@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
-import Image from "next/image";
 
 type Params = {
   params: {
