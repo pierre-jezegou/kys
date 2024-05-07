@@ -31,7 +31,7 @@ export default function CrunchingNumbers({ params: { sessionId } }: Params) {
     return () => {
       clearTimeout(timeout);
     };
-  }, [router]);
+  }, [router, sessionId]);
 
   return (
     <>

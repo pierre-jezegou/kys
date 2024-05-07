@@ -33,22 +33,22 @@ export default function FillDetails() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
       setLoading(true);
-      // Save the details to the database
-      createSession(name, university)
-        .catch((error) => {
-          console.error(error);
-          throw error;
-        })
-        .then((sessionId) => {
+
+      try {
+        const sessionId = await createSession(name, university);
+
+        if (window.innerWidth > 768) {
+          router.push(`/verify/switch-to-phone/${sessionId}`);
+        } else {
           router.push(`/verify/upload-selfie/${sessionId}`);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+        }
+      } finally {
+        setLoading(false);
+      }
     },
     [name, university, router, setLoading]
   );
