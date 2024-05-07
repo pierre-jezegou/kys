@@ -43,7 +43,7 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
       setIsUploading(true);
 
       try {
-        const presignedUrl = await getPresignedUrlForSelfie(
+        const { presignedUrl } = await getPresignedUrlForSelfie(
           sessionId,
           selfie.type
         );
