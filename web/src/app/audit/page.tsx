@@ -9,24 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/catalyst/table";
-
-type State =
-  | "created"
-  | "details-submitted"
-  | "selfie-submitted"
-  | "student-id-submitted"
-  | "selfie-matched"
-  | "selfie-match-failed"
-  | "student-id-matched"
-  | "student-id-match-failed";
-
-type Session = {
-  id: number;
-  name: string;
-  university: string;
-  created: string;
-  state: State;
-};
+import type { Session, State } from "@/lib/session";
 
 const sessions: Session[] = [
   {
