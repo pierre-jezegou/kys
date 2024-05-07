@@ -9,6 +9,7 @@
 
 - [ ] Remove expired sessions
 - [ ] Use event sourcing to improve auditability
+- [ ] Email validation (https://github.com/jetbrains/swot)
 
 ## Strech Goals
 
