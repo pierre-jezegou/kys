@@ -9,7 +9,7 @@ import {
 import { Field } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
 import Spinner from "@/components/spinner";
-import { uploadToS3 } from "@/lib/api";
+import { getPresignedUrlForStudentId, uploadToS3 } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -34,7 +34,7 @@ export default function UploadStudentCard({ params: { sessionId } }: Params) {
   );
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
       if (!studentCard) {
@@ -43,18 +43,18 @@ export default function UploadStudentCard({ params: { sessionId } }: Params) {
 
       setIsUploading(true);
 
-      uploadToS3(
-        `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/student-id`,
+      try {
+        const presignedUrl = await getPresignedUrlForStudentId(
+          sessionId,
+          studentCard.type
+        );
 
-        studentCard,
-        sessionId
-      )
-        .then(() => {
-          router.push(`/verify/crunching-numbers/${sessionId}`);
-        })
-        .finally(() => {
-          setIsUploading(false);
-        });
+        await uploadToS3(presignedUrl, studentCard);
+
+        router.push(`/verify/crunching-numbers/${sessionId}`);
+      } finally {
+        setIsUploading(false);
+      }
     },
     [studentCard, router, sessionId, setIsUploading]
   );

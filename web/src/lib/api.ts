@@ -20,22 +20,49 @@ export const createSession = async (name: string, university: string) => {
   return sessionId;
 };
 
-export async function uploadToS3(url: string, file: File, sessionId: string) {
-  // Fetch a presigned URL from the server
+async function getPresignedUrl(
+  url: string,
+  sessionId: string,
+  contentType: string
+) {
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ sessionId, contentType: file.type }),
+    body: JSON.stringify({ sessionId, contentType }),
   });
 
   if (!response.ok) {
     throw new Error("Failed to fetch presigned URL");
   }
 
-  const presignedUrl = await response.json();
+  return response.json();
+}
 
+export async function getPresignedUrlForSelfie(
+  sessionId: string,
+  contentType: string
+) {
+  return getPresignedUrl(
+    `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/selfie`,
+    sessionId,
+    contentType
+  );
+}
+
+export async function getPresignedUrlForStudentId(
+  sessionId: string,
+  contentType: string
+) {
+  return getPresignedUrl(
+    `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/student-id`,
+    sessionId,
+    contentType
+  );
+}
+
+export async function uploadToS3(presignedUrl: string, file: File) {
   // Upload the file to S3 using the presigned URL
   const uploadResponse = await fetch(presignedUrl, {
     method: "PUT",

@@ -9,7 +9,7 @@ import {
 import { Field } from "@/components/catalyst/fieldset";
 import { Input } from "@/components/catalyst/input";
 import Spinner from "@/components/spinner";
-import { uploadToS3 } from "@/lib/api";
+import { getPresignedUrlForSelfie, uploadToS3 } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -33,7 +33,7 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
   );
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
       if (!selfie) {
@@ -42,17 +42,18 @@ export default function UploadSelfie({ params: { sessionId } }: Params) {
 
       setIsUploading(true);
 
-      uploadToS3(
-        `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/selfie`,
-        selfie,
-        sessionId
-      )
-        .then(() => {
-          router.push(`/verify/upload-student-id/${sessionId}`);
-        })
-        .finally(() => {
-          setIsUploading(false);
-        });
+      try {
+        const presignedUrl = await getPresignedUrlForSelfie(
+          sessionId,
+          selfie.type
+        );
+
+        await uploadToS3(presignedUrl, selfie);
+
+        router.push(`/verify/upload-student-id/${sessionId}`);
+      } finally {
+        setIsUploading(false);
+      }
     },
     [selfie, sessionId, router]
   );
