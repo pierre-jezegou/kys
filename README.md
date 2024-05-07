@@ -18,7 +18,7 @@ npm run dev
 
 Copy `.aws/credentials` from the Learner Lab terminal to your local machine.
 
-Copy the learnerlab 
+Update the field `iam_role_arn` in `api/.chalice/config.json` with the `LabRole` IAM role ARN from the Learner Lab.
 
 
 ```bash
