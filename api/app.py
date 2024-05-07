@@ -20,7 +20,7 @@ _REKOGNITION_CLIENT = None
 s3_client = boto3.client('s3')
 
 DYNAMO_DB_TABLE = os.environ.get('MEDIA_TABLE_NAME', '')
-BUCKET_NAME = os.environ.get('BUCKET_NAME', '')
+APP_BUCKET_NAME = os.environ.get('APP_BUCKET_NAME', '')
 
 
 
@@ -48,7 +48,17 @@ def get_rekognition_client():
            content_types=['application/json'],
            cors=True)
 def create_session():
-    """Create session for student to upload their documents"""
+    """Create session for student to upload their documents
+
+    This function generates a unique session ID for a student to upload their documents.
+    It retrieves the student's name and university from the request body and creates a user object.
+    The user object is then stored in the media database with the session ID as the key.
+    Finally, a JSON response containing the session ID is returned.
+
+    Returns:
+        str: JSON response containing the session ID
+
+    """
 
     session_id = str(uuid.uuid4())
     body = app.current_request.json_body
@@ -66,26 +76,31 @@ def create_session():
         'created': now
     }
 
-    get_media_db().add_media_file(session_id, media_type='json', labels=json.dumps(user))
-
-    response = json.dumps({
-            'sessionId': session_id
-        })
+    get_media_db().add_media_file(session_id,
+                                  media_type='json',
+                                  labels=json.dumps(user))
 
     app.log.debug("New sessionId created: %s", session_id)
 
-    return response
+    return json.dumps({
+            'sessionId': session_id
+        })
 
 @app.route('/presigned-url/{file}',
            methods=['POST'],
            cors=True)
-
-
-
-# OR ?
+# TODO OR ?
 # @app.route('/presigned-url/{session_id}/{file}', methods=['POST'])
 def create_presigned_url(file: str):
-    """Create a presigned URL for the client to upload a file to S3."""
+    """Create a presigned URL for the client to upload a file to S3.
+    
+    Args:
+        file (str): The name of the file to be uploaded.
+        
+    Returns:
+        str: The presigned URL for the client to upload the file.
+    """
+    
     body = app.current_request.json_body
     session_id = body['sessionId']
     # OR
@@ -95,7 +110,7 @@ def create_presigned_url(file: str):
     presigned_url = s3_client.generate_presigned_url(
         ClientMethod='put_object',
         Params={
-            'Bucket': BUCKET_NAME, 
+            'Bucket': APP_BUCKET_NAME, 
             'Key': f"{session_id}/{file}",
             'ContentType': content_type,
         },
@@ -111,8 +126,8 @@ def create_presigned_url(file: str):
 @app.route('/session', methods=["GET"])
 def get_all_records():
     """Get all records from the DynamoDB table."""
-    pass
     # Get all records from the DynamoDB table
+    return get_rekognition_client.get_all_records()
 
 
 
@@ -124,7 +139,7 @@ def get_record(session_id):
 
 
 
-@app.on_s3_event(bucket=BUCKET_NAME, events=["s3:ObjectPut:*"])
+@app.on_s3_event(bucket=APP_BUCKET_NAME, events=["s3:ObjectPut:*"])
 def lambda_handler(event):
     """Process S3 event related to image upload and update DynamoDB."""
     app.log.debug("Received event for bucket: %s, key: %s", event.bucket, event.key)
@@ -142,6 +157,7 @@ def lambda_handler(event):
     if image == "student-id":
         message = 'Student id uploaded - status updated'
         app.log.debug(message)
+        # Run Main verification process
         _main_check_process(session_id)
 
     # Update status in dynamodb
@@ -158,45 +174,6 @@ def lambda_handler(event):
         }
 
 
-def _extract_text_from_student_id(bucket: str, key: str) -> list[str]:
-    """Extract text from the student id image with AWS Rekognition.
-    Return a list of text detected in the image."""
-    response = get_rekognition_client().detect_text(bucket, key) # To improve
-    return response['TextDetections']
-
-def _compare_logo(university: str, bucket: str, key: str) -> bool:
-    """Compare the logo of the university with the logo on the student id.
-    Return True if the logos match, False otherwise.
-    University: name of the university
-    Source image: student id"""
-
-    # Extract the logo of the university
-
-    # Compare if the logos match
-
-    return True
-
-def _compare_faces(bucket: str, student_id_key: str, selfie_key: str) -> bool:
-    """Compare the faces in the selfie and the student id.
-    Return True if the faces match, False otherwise.
-    Source image: student id
-    Target image: selfie
-    """
-
-    # Assert there is the `selfie` in the bucket
-    # No need to assert student id is in the bucket because
-    # this event trigger the lambda only if the student id is uploaded
-
-    # Source image : from student id (bucket)
-
-    # Target image : from selfie (bucket)
-
-    # Compute similarity: with Rekognition
-    similarity = False
-
-    return similarity
-
-
 def _main_check_process(session_id: str) -> bool:
     """Main function to check the process of the student submission.
     Check the status of the submission and update it accordingly.
@@ -207,35 +184,30 @@ def _main_check_process(session_id: str) -> bool:
     name = user['name']
 
     # Get the bucket and key of the student id
-    bucket = BUCKET_NAME
+    bucket = APP_BUCKET_NAME
     student_id_key = f"{session_id}/student-id"
     selfie_key = f"{session_id}/selfie"
 
     # Extract text from student id
-    extracted_text = _extract_text_from_student_id(bucket=bucket, key=student_id_key)
-
-    # Find name in the extracted text
-    name_found = False
-    for text in extracted_text:
-        if text == name:
-            name_found = True
-            break
+    name_in_student_id = get_rekognition_client().image_contains_texts(bucket=bucket,
+                                                                   object_name=student_id_key,
+                                                                   texts=name)
 
     # Check if logo on the student id matches the university logo
-    coherent_logo = _compare_logo(university=university,
-                                  bucket=bucket,
-                                  key=student_id_key)
+    coherent_logo = get_rekognition_client().compare_logo(university=university,
+                                                           bucket=bucket,
+                                                           key=student_id_key)
 
     # Compare faces in the selfie and the student id
-    compared_faces = _compare_faces(bucket=bucket,
-                                    student_id_key=student_id_key,
-                                    selfie_key=selfie_key)
+    compared_faces = get_rekognition_client().compare_faces(bucket=bucket,
+                                                            source_object_name=student_id_key,
+                                                            selfie_key=selfie_key)
 
     # Update status in dynamodb
-    if name_found and coherent_logo and compared_faces:
+    if name_in_student_id and coherent_logo and compared_faces:
         status = "approved"
     else:
-        status = "rejected"
+        status = "denied"
 
     # Write in dynamodb
     user['status'] = status
@@ -261,12 +233,12 @@ def check_result(session_id):
             'verificationStatus': status,
             'message': 'Approved'
         }
-    # If the status is rejected
-    if status == "rejected":
+    # If the status is denied
+    if status == "denied":
         return {
             'sessionId': session_id,
             'verificationStatus': status,
-            'message': 'Rejected'
+            'message': 'Denied'
         }
     # Else (other status) - Pending
     return {
