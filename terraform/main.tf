@@ -60,3 +60,7 @@ resource "aws_dynamodb_table" "sessions_table" {
     project = "KYS"
   }
 }
+
+output "lab_role_arn" {
+  value = data.aws_iam_role.lab_role.arn
+}
