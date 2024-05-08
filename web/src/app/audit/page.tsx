@@ -37,7 +37,6 @@ const sessions: Session[] = [
 
 const statusExplanation: Record<State, string> = {
   created: "A verification session has been created.",
-  "details-submitted": "The student has submitted their details.",
   "selfie-submitted": "The student has submitted their selfie.",
   "student-id-submitted": "The student has submitted their student ID.",
   "selfie-matched": "The selfie matches the student ID.",
