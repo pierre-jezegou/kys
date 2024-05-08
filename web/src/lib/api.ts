@@ -45,7 +45,7 @@ export async function getPresignedUrlForSelfie(
   contentType: string
 ) {
   return getPresignedUrl(
-    `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/selfie`,
+    `${process.env.NEXT_PUBLIC_API_URL}/session/${sessionId}/presigned-url/selfie`,
     sessionId,
     contentType
   );
@@ -56,7 +56,7 @@ export async function getPresignedUrlForStudentId(
   contentType: string
 ) {
   return getPresignedUrl(
-    `${process.env.NEXT_PUBLIC_API_URL}/presigned-url/student-id`,
+    `${process.env.NEXT_PUBLIC_API_URL}/session/${sessionId}/presigned-url/student-id`,
     sessionId,
     contentType
   );
