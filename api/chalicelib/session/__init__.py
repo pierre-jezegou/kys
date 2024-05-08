@@ -45,6 +45,7 @@ def create_session():
             "university": university,
             "state": state,
             "created": created,
+            "updated": created,
         }
     )
 
@@ -54,6 +55,7 @@ def create_session():
 @bp.route(
     "/{session_id}",
     methods=["GET"],
+    content_types=["application/json"],
     cors=True,
 )
 def get_session(session_id: str):
@@ -61,7 +63,7 @@ def get_session(session_id: str):
     Returns a verification session.
     """
 
-    session = get_db().get_item(Key={"session_id": session_id}).get("Item")
+    session = get_db().get_item(Key={"id": session_id}).get("Item")
 
     if not session:
         raise NotFoundError("Session not found.")

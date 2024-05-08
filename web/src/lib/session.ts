@@ -2,21 +2,29 @@ export type State =
   | "created"
   | "selfie-submitted"
   | "student-id-submitted"
-  | "selfie-matched"
-  | "selfie-match-failed"
-  | "student-id-matched"
-  | "student-id-match-failed";
+  | "face-not-detected"
+  | "too-many-faces"
+  | "faces-not-matched"
+  | "text-not-detected"
+  | "text-not-matched"
+  | "approved";
 
 export type Session = {
   id: number;
   name: string;
   university: string;
-  created: string;
   state: State;
 };
 
-const DENIED_STATES = ["student-id-match-failed"];
-const APPROVED_STATES = ["selfie-matched", "student-id-matched"];
+const DENIED_STATES = [
+  "face-not-detected",
+  "too-many-faces",
+  "faces-not-matched",
+  "text-not-detected",
+  "text-not-matched",
+  "approved",
+];
+const APPROVED_STATES = ["approved"];
 
 export function getProgress(state: State) {
   if (DENIED_STATES.includes(state)) {
