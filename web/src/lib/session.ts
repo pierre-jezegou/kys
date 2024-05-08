@@ -1,6 +1,5 @@
 export type State =
   | "created"
-  | "details-submitted"
   | "selfie-submitted"
   | "student-id-submitted"
   | "selfie-matched"
