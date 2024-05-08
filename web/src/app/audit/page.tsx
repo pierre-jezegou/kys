@@ -39,11 +39,12 @@ const statusExplanation: Record<State, string> = {
   created: "A verification session has been created.",
   "selfie-submitted": "The student has submitted their selfie.",
   "student-id-submitted": "The student has submitted their student ID.",
-  "selfie-matched": "The selfie matches the student ID.",
-  "selfie-match-failed": "The selfie does not match the student ID.",
-  "student-id-matched": "The student ID matches the student details.",
-  "student-id-match-failed":
-    "The student ID does not match the student details.",
+  "face-not-detected": "Could not detect a face in the selfie.",
+  "too-many-faces": "There is more than one face in the selfie.",
+  "faces-not-matched": "The faces in the selfie do not match.",
+  "text-not-detected": "Could not detect text in the student ID.",
+  "text-not-matched": "The text in the student ID does not match.",
+  approved: "The student ID and selfie match.",
 };
 
 function SessionsTable({ sessions }: any) {
