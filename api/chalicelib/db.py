@@ -11,5 +11,5 @@ def get_db() -> boto3.resource:
     Returns:
         A DynamoDB resource.
     """
-    return boto3.resource("dynamodb").Table(os.environ["APP_TABLE_NAME"])
+    return boto3.resource("dynamodb", region_name=os.environ["REGION_NAME"]).Table(os.environ["APP_TABLE_NAME"])
 
