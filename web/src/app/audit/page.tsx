@@ -9,29 +9,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/catalyst/table";
-import type { Session, State } from "@/lib/session";
+import { Session, State, getProgress } from "@/lib/session";
 
 const sessions: Session[] = [
   {
     id: 1,
     name: "Vincent Olesen",
     university: "Danmarks Tekniske Universitet",
-    created: "2021-01-01",
-    state: "selfie-match-failed",
+    state: "face-not-detected",
   },
   {
     id: 2,
     name: "Pierre Jezegou",
     university: "École Centrale de Lille",
-    created: "2021-01-01",
-    state: "student-id-matched",
+    state: "approved",
   },
   {
     id: 3,
     name: "Vanja Vidmark",
     university: "KTH Royal Institute of Technology",
-    created: "2021-01-01",
-    state: "selfie-submitted",
+    state: "text-not-detected",
   },
 ];
 
@@ -78,11 +75,9 @@ function SessionsTable({ sessions }: any) {
               {statusExplanation[session.state]}
             </TableCell>
             <TableCell>
-              {session.state == "student-id-matched" ? (
+              {getProgress(session.state) == "approved" ? (
                 <Badge color="lime">Approved</Badge>
-              ) : session.state == "selfie-match-failed" ? (
-                <Badge color="red">Denied</Badge>
-              ) : session.state == "student-id-match-failed" ? (
+              ) : getProgress(session.state) == "denied" ? (
                 <Badge color="red">Denied</Badge>
               ) : (
                 <Badge color="zinc">In progress</Badge>
