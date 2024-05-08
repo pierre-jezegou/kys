@@ -3,7 +3,7 @@ import os
 import boto3
 from chalice import Blueprint
 
-from api.chalicelib.db import get_db
+from chalicelib.db import get_db
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 
