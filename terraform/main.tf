@@ -64,3 +64,11 @@ resource "aws_dynamodb_table" "sessions_table" {
 output "lab_role_arn" {
   value = data.aws_iam_role.lab_role.arn
 }
+
+output "session_files_bucket_name" {
+  value = aws_s3_bucket.session_files.bucket
+}
+
+output "sessions_table_name" {
+  value = aws_dynamodb_table.sessions_table.name
+}
