@@ -9,6 +9,9 @@
 ## Maybe?
 
 - [ ] Remove old sessions and images (Maybe every 24 hours?)
+- [ ] Remove expired sessions
+- [ ] Use event sourcing to improve auditability
+- [ ] Email validation (https://github.com/jetbrains/swot)
 
 ## Strech Goals
 
