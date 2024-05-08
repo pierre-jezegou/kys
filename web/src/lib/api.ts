@@ -80,7 +80,7 @@ export async function uploadToS3(presignedUrl: string, file: File) {
 
 export async function getSession(sessionId: string) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}`
+    `${process.env.NEXT_PUBLIC_API_URL}/session/${sessionId}`
   );
   return response.json();
 }

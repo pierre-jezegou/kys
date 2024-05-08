@@ -4,6 +4,8 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/catalyst/dialog";
+import { useSession } from "@/hooks/useSession";
+import { getProgress } from "@/lib/session";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -17,21 +19,19 @@ type Params = {
 export default function CrunchingNumbers({ params: { sessionId } }: Params) {
   const router = useRouter();
 
+  const session = useSession(sessionId);
+
+  const state = session?.state || "created";
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const approved = Math.random() > 0.5;
+    const progress = getProgress(state);
 
-      if (approved) {
-        router.push(`/verify/approved/${sessionId}`);
-      } else {
-        router.push(`/verify/denied/${sessionId}`);
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [router, sessionId]);
+    if (progress == "approved") {
+      router.push(`/verify/approved/${sessionId}`);
+    } else if (progress == "denied") {
+      router.push(`/verify/denied/${sessionId}`);
+    }
+  }, [router, sessionId, state]);
 
   return (
     <>
