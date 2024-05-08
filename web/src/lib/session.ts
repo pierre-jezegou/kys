@@ -22,7 +22,6 @@ const DENIED_STATES = [
   "faces-not-matched",
   "text-not-detected",
   "text-not-matched",
-  "approved",
 ];
 const APPROVED_STATES = ["approved"];
 
