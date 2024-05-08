@@ -11,6 +11,7 @@ data "aws_iam_role" "lab_role" {
 
 resource "aws_s3_bucket" "session_files" {
   bucket = "kys-session-files-${random_id.bucket_id.hex}"
+  force_destroy = true
   tags = {
     Name    = "Session Files Bucket"
     project = "KYS"
