@@ -55,7 +55,7 @@ def image_contains_texts(object_name, texts):
     return needles_in_haystack(texts, response)
 
 
-@bp.on_s3_event(bucket=APP_BUCKET_NAME, events=["s3:ObjectPut:*"])
+@bp.on_s3_event(bucket=APP_BUCKET_NAME, events=["s3:ObjectCreated:*"])
 def handle_s3_event(event):
     bp.log.info(f"Received S3 event: {event}")
 
