@@ -1,8 +1,9 @@
 # TODO
 
-- [ ] Migrate code `aws-infrastructure` branch to `main` using `chalice`
-- [ ] Provision S3 bucket for image uploads using `Terraform` or `CloudFormation`
-- [ ] Provision DynamoDB table for session management using `Terraform` or `CloudFormation`
+- [x] Migrate code `aws-infrastructure` branch to `main` using `chalice`
+- [x] Provision S3 bucket for image uploads using `Terraform` or `CloudFormation`
+- [x] Provision DynamoDB table for session management using `Terraform` or `CloudFormation`
+- [ ] Implement the verification process
 - [ ] Setup CI/CD pipeline for `api` (https://aws.github.io/chalice/topics/cd.html)
 - [ ] Find a way to model the workflow for the verification process. Maybe we should consider event sourcing?
 
