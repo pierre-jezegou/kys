@@ -21,9 +21,11 @@ export default function WaitingOnPhone({ params: { sessionId } }: Params) {
 
   const session = useSession(sessionId);
 
-  const state = session?.state || "created";
+  const state = session?.state;
 
   useEffect(() => {
+    if (!state) return;
+
     const progress = getProgress(state);
 
     if (progress == "approved") {

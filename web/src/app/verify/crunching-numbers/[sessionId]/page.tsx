@@ -21,14 +21,17 @@ export default function CrunchingNumbers({ params: { sessionId } }: Params) {
 
   const session = useSession(sessionId);
 
-  const state = session?.state || "created";
+  const state = session?.state;
 
   useEffect(() => {
-    const progress = getProgress(state);
+    if (!state) return;
 
+    const progress = getProgress(state);
     if (progress == "approved") {
+      console.log(progress);
       router.push(`/verify/approved/${sessionId}`);
     } else if (progress == "denied") {
+      console.log(progress);
       router.push(`/verify/denied/${sessionId}`);
     }
   }, [router, sessionId, state]);
