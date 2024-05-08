@@ -7,16 +7,17 @@
       "environment_variables": {
         "APP_BUCKET_NAME": "kys-session-files",
         "APP_TABLE_NAME": "kys-sessions"
-      }
+      },
+      "iam_role_arn": "INSERT_YOUR_IAM_LAB_ROLE_ARN"
     },
     "prod": {
       "api_gateway_stage": "api",
       "environment_variables": {
-        "APP_BUCKET_NAME": "kys-session-files",
-        "APP_TABLE_NAME": "kys-sessions"
-      }
+        "APP_BUCKET_NAME": "${aws_s3_bucket.session_files.bucket}",
+        "APP_TABLE_NAME": "${aws_dynamodb_table.sessions_table.name}"
+      },
+      "iam_role_arn": "${data.aws_iam_role.lab_role.arn}"
     }
   },
-  "manage_iam_role": false,
-  "iam_role_arn": "INSERT_YOUR_IAM_LAB_ROLE_ARN"
+  "manage_iam_role": false
 }
