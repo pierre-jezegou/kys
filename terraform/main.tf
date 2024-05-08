@@ -1,13 +1,16 @@
 provider "aws" {
   region = var.region
 }
+resource "random_id" "bucket_id" {
+  byte_length = 8
+}
 
 data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
 resource "aws_s3_bucket" "session_files" {
-  bucket = "kys-session-files"
+  bucket = "kys-session-files-${random_id.bucket_id.hex}"
   tags = {
     Name    = "Session Files Bucket"
     project = "KYS"
