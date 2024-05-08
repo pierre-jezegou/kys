@@ -15,15 +15,21 @@ npm run dev
 ```
 
 ### api
-
 Copy `.aws/credentials` from the Learner Lab terminal to your local machine.
+#### Deploy S3 bucket and DynamoDB table using Terraform
+This aims to deploy a S3 bucket and a DynamoDB table for the API to store images and student information.
 
-Create a S3 bucket for the API to store images. Update the field `APP_BUCKET_NAME` in `api/.chalice/config.json` with the name of the S3 bucket.
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+This terraform script return the name of the S3 bucket and the DynamoDB table. You will need to update the `api/.chalice/config.json` file with these values:
+- Update the field `APP_BUCKET_NAME` in `api/.chalice/config.json` with the name of the S3 bucket.
+- Update the field `APP_TABLE_NAME` in `api/.chalice/config.json` with the name of the DynamoDB table.
+- Update the field `iam_role_arn` in `api/.chalice/config.json` with the `LabRole` IAM role ARN from the Learner Lab.
 
-Creat a DynamoDB table for the API to store student information. Update the field `APP_TABLE_NAME` in `api/.chalice/config.json` with the name of the DynamoDB table.
-
-Update the field `iam_role_arn` in `api/.chalice/config.json` with the `LabRole` IAM role ARN from the Learner Lab.
-
+#### Run the API locally
 ```bash
 cd api
 
