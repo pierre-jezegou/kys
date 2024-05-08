@@ -44,7 +44,7 @@ export default function UploadStudentCard({ params: { sessionId } }: Params) {
       setIsUploading(true);
 
       try {
-        const presignedUrl = await getPresignedUrlForStudentId(
+        const { presignedUrl } = await getPresignedUrlForStudentId(
           sessionId,
           studentCard.type
         );
