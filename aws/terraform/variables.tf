@@ -1,22 +1,15 @@
 variable "region" {
   description = "AWS region where resources will be provisioned"
   type        = string
+  default     = "us-east-1"
 }
 
 variable "hosts" {
   description = "Hosts where the frontend will be hosted"
   type        = list(string)
-}
-
-variable "lambda_function_names" {
-  description = "Names of the lambda functions"
-  type        = list(string)
-}
-
-variable "api_resources" {
-    type = list(object({
-      name       = string
-      parent     = string
-      path_part  = string
-    }))
+  default = [
+    "http://localhost:3000",
+    "https://kys-omega.vercel.app",
+    "https://www.verify.college"
+  ]
 }
