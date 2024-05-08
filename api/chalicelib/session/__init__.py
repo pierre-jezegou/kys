@@ -8,7 +8,17 @@ from chalice import BadRequestError, Blueprint, NotFoundError
 
 from chalicelib.db import get_db
 
-SessionState = Literal["pending", "verified", "expired"]
+SessionState = Literal[
+    "created",
+    "selfie-submitted",
+    "student-id-submitted",
+    "face-not-detected",
+    "too-many-faces",
+    "faces-not-matched",
+    "text-not-detected",
+    "text-not-matched",
+    "approved",
+]
 
 bp = Blueprint(__name__)
 
