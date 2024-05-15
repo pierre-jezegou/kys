@@ -32,11 +32,13 @@ Guiding principles:
 ## State Machine
 
 ```mermaid
-flowchart TD
+
+flowchart TB
     Start[*] -->|API: Customer creates session| Created
     Created[Created] -->|S3 Event: Student uploads selfie| UploadedSelfie[UploadedSelfie]
     UploadedSelfie -->|S3 Event: Student uploads id| UploadedStudentCard[UplopadedStudentCard]
     
+
     subgraph Verification process
     subgraph Approved states
         Approved
@@ -48,13 +50,12 @@ flowchart TD
         FaceMismatch
     end
 
-    UploadedStudentCard -->|Mismatch| TextMismatch
-    UploadedStudentCard --> TextMatched
+    UploadedStudentCard -->|Name or university mismatch| TextMismatch
+    UploadedStudentCard -->|Name and university match| TextMatched
     TextMatched -->|Multiple faces in pictures| MoreThanOneFace
-    TextMatched --> ExactlyOneFace
+    TextMatched -->|Exactly one face in pictures| ExactlyOneFace
     ExactlyOneFace -->|Face comparison failed| FaceMismatch
-    ExactlyOneFace --> Approved
-
+    ExactlyOneFace -->|Face comparison suceeded| Approved
 end
 ```
 
