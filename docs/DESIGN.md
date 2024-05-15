@@ -21,17 +21,13 @@ flowchart TB
     userAtVerificationService[User at Verification Service]
     userUploadsStudentCard[User uploads student card at Verification Service]
     userPerformsFaceLiveness[User performs face-liveness at Verification Service]
-    approved[Approved]
-    rejected[Rejected]
     userBackAtWebshop[User back at Webshop]
 
     userAtWebshop -->|Fills checkout form and is redirected| userAtVerificationService
     userAtVerificationService -->|Uploads student card| userUploadsStudentCard
     userUploadsStudentCard -->|Performs face-liveness| userPerformsFaceLiveness
-    userPerformsFaceLiveness -->|Approved| approved
-    userPerformsFaceLiveness -->|Rejected| rejected
-    approved -->|Redirect back to webshop| userBackAtWebshop
-    rejected -->|Redirect back to webshop| userBackAtWebshop
+    userPerformsFaceLiveness -->|Approved| userBackAtWebshop
+    userPerformsFaceLiveness -->|Rejected| userBackAtWebshop
 ```
 
 
