@@ -16,10 +16,8 @@ We propose the following pipeline for student verification, from the customers p
 
 
 ```mermaid
-User->Webshop: Fill checkout form (name, university)
-Webshop->User: Redirect to verification service
-User->Verification: Upload Student ID and Selfie
-Verification->User: Redirect to order confirmation with verification status
+flowchart LR
+    UserAtWebshop -->|Fill checkout form and is redirected| UserAtVerificationService -->|Upload student card and perform face-liveness| Acceptance & Rejection -->|Redirect back to webshop| UserAtWebshop
 ```
 
 
