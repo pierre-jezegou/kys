@@ -17,7 +17,17 @@ We propose the following pipeline for student verification, from the customers p
 
 ```mermaid
 flowchart LR
-    UserAtWebshop -->|Fill checkout form and is redirected| UserAtVerificationService -->|Upload student card and perform face-liveness| Acceptance & Rejection -->|Redirect back to webshop| UserAtWebshop
+    userAtWebshop[User at Webshop]
+    userAtVerificationService[User at Verification Service]
+    approved[Verification Approved]
+    rejected[Verification Rejected]
+    userBackAtWebshop[User back at Webshop]
+
+    userAtWebshop -->|Fills checkout form and is redirected| userAtVerificationService
+    userAtVerificationService -->|Uploads student card and performs face-liveness| approved
+    userAtVerificationService -->|Uploads student card and performs face-liveness| rejected
+    approved -->|Redirect back to webshop| userBackAtWebshop
+    rejected -->|Redirect back to webshop| userBackAtWebshop
 ```
 
 
