@@ -32,18 +32,33 @@ Guiding principles:
 ## State Machine
 
 ```mermaid
-stateDiagram-v2
-    state if_state <<choice>>
+flowchart TD
+    Start[*] -->|API: Customer creates session| Created
+    Created[Created] -->|S3 Event: Student uploads selfie| UploadedSelfie[UploadedSelfie]
+    UploadedSelfie -->|S3 Event: Student uploads id| UploadedStudentCard[UplopadedStudentCard]
+    
+    subgraph Verification process
+    subgraph Approved states
+        Approved
+    end
 
-    [*] --> Created: Name and university provided
-    Created --> SelfieUploaded: S3 Notification Event (Selfie)
-    SelfieUploaded --> StudentIDUploaded: S3 Notification Event (Student ID)
-    StudentIDUploaded --> if_state
-    if_state --> Verified: Face and text match
-    Verified --> [*]
-    if_state --> Failed: Face or text mismatch
-    Failed --> [*]
+    subgraph Denied states
+        TextMismatch
+        MoreThanOneFace
+        FaceMismatch
+    end
+
+    UploadedStudentCard -->|Mismatch| TextMismatch
+    UploadedStudentCard --> TextMatched
+    TextMatched -->|Multiple faces in pictures| MoreThanOneFace
+    TextMatched --> ExactlyOneFace
+    ExactlyOneFace -->|Face comparison failed| FaceMismatch
+    ExactlyOneFace --> Approved
+
+end
 ```
+
+
 
 ## Verification Flow
 
