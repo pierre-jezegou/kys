@@ -19,8 +19,8 @@ We propose the following pipeline for student verification, from the customers p
 flowchart TB
     userAtWebshop[User at Webshop]
     userAtVerificationService[User at Verification Service]
-    userUploadsStudentCard[User uploads student card]
-    userPerformsFaceLiveness[User performs face-liveness]
+    userUploadsStudentCard[User uploads student card at Verification Service]
+    userPerformsFaceLiveness[User performs face-liveness at Verification Service]
     approved[Approved]
     rejected[Rejected]
     userBackAtWebshop[User back at Webshop]
