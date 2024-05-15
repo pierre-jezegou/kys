@@ -17,9 +17,8 @@ export default function Denied({ params: { sessionId } }: Params) {
     <>
       <DialogTitle>Hmm, Something&apos;s Up!</DialogTitle>
       <DialogDescription>
-        Oops! We couldn&apos;t verify your identity this time. No worries,
-        though! You can try again or reach out to support for assistance.
-        We&apos;re here to help you through it.
+        Oops! We couldn&apos;t verify your identity this time.
+        Hang tight, we&apos;ll whisk you right back to where you left off in just a moment.
       </DialogDescription>
       <DialogBody>
         <div className="flex justify-center my-4">

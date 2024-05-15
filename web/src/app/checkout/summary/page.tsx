@@ -92,7 +92,7 @@ export default function Summary() {
             <dl className="space-y-6 border-t border-gray-200 pt-10 text-sm">
               <div className="flex justify-between">
                 <dt className="font-medium text-gray-900">Subtotal</dt>
-                <dd className="text-gray-700">€36.00</dd>
+                <dd className="text-gray-700">€32.00</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="flex font-medium text-gray-900">
@@ -114,7 +114,7 @@ export default function Summary() {
               <div className="flex justify-between">
                 <dt className="font-medium text-gray-900">Total</dt>
                 <dd className="text-gray-900">
-                  €{discount ? "23.00" : "41.00"}
+                  €{discount ? "23.00" : "37.00"}
                 </dd>
               </div>
             </dl>
