@@ -9,13 +9,12 @@
 
 ## Maybe?
 
-- [ ] Remove old sessions and images (Maybe every 24 hours?)
-- [ ] Remove expired sessions
 - [ ] Use event sourcing to improve auditability
 - [ ] Email validation (https://github.com/jetbrains/swot)
 
 ## Strech Goals
 
+- [ ] Remove expired sessions and images (maybe, every month)
 - [x] "Continue on mobile" support
 - [ ] Human-in-the-Loop verification on text match failure
 - [ ] Logo verification (Check if the logo on the student card matches the university logo)
