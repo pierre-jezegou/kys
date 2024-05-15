@@ -16,16 +16,20 @@ We propose the following pipeline for student verification, from the customers p
 
 
 ```mermaid
-flowchart LR
+flowchart TB
     userAtWebshop[User at Webshop]
     userAtVerificationService[User at Verification Service]
-    approved[Verification Approved]
-    rejected[Verification Rejected]
+    userUploadsStudentCard[User uploads student card]
+    userPerformsFaceLiveness[User performs face-liveness]
+    approved[Approved]
+    rejected[Rejected]
     userBackAtWebshop[User back at Webshop]
 
     userAtWebshop -->|Fills checkout form and is redirected| userAtVerificationService
-    userAtVerificationService -->|Uploads student card and performs face-liveness| approved
-    userAtVerificationService -->|Uploads student card and performs face-liveness| rejected
+    userAtVerificationService -->|Uploads student card| userUploadsStudentCard
+    userUploadsStudentCard -->|Performs face-liveness| userPerformsFaceLiveness
+    userPerformsFaceLiveness -->|Approved| approved
+    userPerformsFaceLiveness -->|Rejected| rejected
     approved -->|Redirect back to webshop| userBackAtWebshop
     rejected -->|Redirect back to webshop| userBackAtWebshop
 ```
