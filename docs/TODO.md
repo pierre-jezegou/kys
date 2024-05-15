@@ -19,3 +19,9 @@
 - [ ] Human-in-the-Loop verification on text match failure
 - [ ] Logo verification (Check if the logo on the student card matches the university logo)
 - [ ] Audit panel for the customer, to see the uploaded student cards etc.
+
+
+## Report
+
+- [ ] Architecture diagram
+- [ ] Screenshots and video demo
