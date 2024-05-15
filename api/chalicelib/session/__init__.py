@@ -5,7 +5,7 @@ from typing import Literal
 
 import boto3
 from boto3.dynamodb.conditions import Attr
-from chalice import BadRequestError, Blueprint, NotFoundError
+from chalice import BadRequestError, Blueprint, NotFoundError, Rate
 from chalicelib.db import get_db
 
 SessionState = Literal[
@@ -117,7 +117,7 @@ def create_presigned_url(session_id: str, file: str):
     return {"presignedUrl": presigned_url}
 
 
-@bp.route("cleanup", methods=["POST"], content_types=["application/json"], cors=True)
+@bp.schedule(Rate(7, unit=Rate.DAYS))
 def clean_expired_sessions():
     """
     Cleans expired verification sessions.
