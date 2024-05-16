@@ -84,3 +84,10 @@ export async function getSession(sessionId: string) {
   );
   return response.json();
 }
+
+export async function getSessions() {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/session/audit`
+  );
+  return response.json();
+}

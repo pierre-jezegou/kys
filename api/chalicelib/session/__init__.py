@@ -80,6 +80,20 @@ def get_session(session_id: str):
 
     return session
 
+@bp.route(
+    "/audit",
+    methods=["GET"],
+    content_types=["application/json"],
+    cors=True,
+)
+def get_sessions():
+    """
+    Returns all verification sessions.
+    """
+
+    sessions = get_db().scan().get("Items")
+
+    return sessions
 
 @bp.route(
     "/{session_id}/presigned-url/{file}",
