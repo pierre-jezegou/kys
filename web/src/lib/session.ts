@@ -7,7 +7,8 @@ export type State =
   | "faces-not-matched"
   | "text-not-detected"
   | "text-not-matched"
-  | "approved";
+  | "approved"
+  | "pending";
 
 export type Session = {
   id: number;

@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/api";
+import { getSession, getSessions } from "@/lib/api";
 import { Session } from "@/lib/session";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -38,4 +38,17 @@ export function useSession(sessionId: string): Session | null {
   useInterval(fetchSession, POLLING_INTERVAL);
 
   return session;
+}
+
+export function useSessions(): Session[] {
+  const [sessions, setSessions] = useState<Session[]>([]);
+
+  const fetchSessions = useCallback(async () => {
+    const sessions = await getSessions();
+    setSessions(sessions);
+  }, []);
+
+  useInterval(fetchSessions, POLLING_INTERVAL);
+
+  return sessions;
 }

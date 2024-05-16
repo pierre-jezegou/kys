@@ -10,27 +10,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import { Session, State, getProgress } from "@/lib/session";
-
-const sessions: Session[] = [
-  {
-    id: 1,
-    name: "Vincent Olesen",
-    university: "Danmarks Tekniske Universitet",
-    state: "face-not-detected",
-  },
-  {
-    id: 2,
-    name: "Pierre Jezegou",
-    university: "École Centrale de Lille",
-    state: "approved",
-  },
-  {
-    id: 3,
-    name: "Vanja Vidmark",
-    university: "KTH Royal Institute of Technology",
-    state: "text-not-detected",
-  },
-];
+import { useSessions } from "@/hooks/useSession";
 
 const statusExplanation: Record<State, string> = {
   created: "A verification session has been created.",
@@ -42,6 +22,7 @@ const statusExplanation: Record<State, string> = {
   "text-not-detected": "Could not detect text in the student ID.",
   "text-not-matched": "The text in the student ID does not match.",
   approved: "The student ID and selfie match.",
+  pending: "The verification is pending.",
 };
 
 function SessionsTable({ sessions }: any) {
@@ -91,5 +72,6 @@ function SessionsTable({ sessions }: any) {
 }
 
 export default function Audit() {
+  const sessions = useSessions();
   return <SessionsTable sessions={sessions} />;
 }
