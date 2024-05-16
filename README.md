@@ -56,3 +56,4 @@ pip install -r requirements.txt
 chalice deploy
 ```
 
+And set `NEXT_PUBLIC_API_URL` accordingly in `.env` or `.env.local`.
