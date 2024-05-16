@@ -53,7 +53,7 @@ export default function CheckoutForm() {
     <div className="bg-white">
       {/* Background color split screen for large screens */}
       <div
-        className="fixed left-0 top-0 hidden h-full w-1/2 bg-white lg:block"
+        className="fixed left-0 top-0 hidden h-full w-1/2 bg-white lg:block dark:bg-zinc-900"
         aria-hidden="true"
       />
       <div
