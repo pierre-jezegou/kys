@@ -1,0 +1,32 @@
+version: '3'
+services:
+  api:
+    build: api/
+    container_name: kys-api
+    ports:
+      - "8000:8000"
+    environment:
+      - "IAM_ROLE_ARN=arn:aws:iam::730335380714:role/LabRole"
+      - "APP_BUCKET_NAME=kys-session-files-1e2ff77e4ec4d3c1"
+      - "APP_TABLE_NAME=kys-sessions"
+    networks:
+      - kys-dev-stack
+    volumes:
+      - ./api:/api  # Maps local API directory to /api in the container
+
+  web:
+    container_name: kys-web
+    build: web/
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_WEB_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - kys-dev-stack
+    volumes:
+      - ./web:/app  # Maps local web directory to /app in the container
+
+networks:
+  kys-dev-stack:
+    driver: bridge
