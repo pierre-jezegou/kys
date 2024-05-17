@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
 WORKDIR /api
 
@@ -18,4 +18,3 @@ COPY .credentials /root/.aws/credentials
 EXPOSE 8000
 
 CMD python inject-vars.py && chalice local --host 0.0.0.0
-
