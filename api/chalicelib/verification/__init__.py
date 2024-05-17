@@ -35,14 +35,24 @@ def compare_faces(source_object_name, target_object_name, threshold=90):
 def detect_faces(object_name):
     rekognition_client = boto3.client("rekognition")
 
-    response = rekognition_client.detect_faces(
-        Image={
-            "S3Object": {"Bucket": APP_BUCKET_NAME, "Name": object_name}
-        },
-        Attributes=['ALL']
-    )
+    try:
+        response = rekognition_client.detect_faces(
+            Image={
+                "S3Object": {
+                    "Bucket": APP_BUCKET_NAME,
+                    "Name": object_name,
+                }
+            },
+            Attributes=["ALL"]
+        )
+    except rekognition_client.exceptions.InvalidImageFormatException as e:
+        print(f"Invalid image format for {object_name}: {e}")
+        return None, "invalid-image-format"
+    except Exception as e:
+        print(f"Error detecting faces: {e}")
+        return None, f"error-detecting-faces: {e}"
 
-    return len(response['FaceDetails'])
+    return len(response["FaceDetails"]), None
 
 def needles_in_haystack(needles, haystack):
     for needle in needles:
@@ -78,6 +88,8 @@ def handle_s3_event(event):
 
     if file not in ["selfie", "student-id"]:
         return
+    
+    print(f"Processing file: {file} for session: {session_id}")
 
     if file == "selfie":
         # Update the session state, state = selfie-submitted
@@ -92,9 +104,25 @@ def handle_s3_event(event):
     selfie_object_name = f"{session_id}/selfie"
     student_id_object_name = f"{session_id}/student-id"
 
-    # Detect faces in the images
-    selfie_faces = detect_faces(selfie_object_name)
-    student_id_faces = detect_faces(student_id_object_name)
+    selfie_faces, error = detect_faces(selfie_object_name)
+    if error:
+        get_db().update_item(
+            Key={"id": session_id},
+            UpdateExpression="SET #state = :state",
+            ExpressionAttributeNames={"#state": "state"},
+            ExpressionAttributeValues={":state": "error-detecting-selfie-faces"},
+        )
+        return
+
+    student_id_faces, error = detect_faces(student_id_object_name)
+    if error:
+        get_db().update_item(
+            Key={"id": session_id},
+            UpdateExpression="SET #state = :state",
+            ExpressionAttributeNames={"#state": "state"},
+            ExpressionAttributeValues={":state": "error-detecting-student-id-faces"},
+        )
+        return
 
     if selfie_faces != 1 or student_id_faces != 1:
         # Update the session state, state = more-than-one-face
