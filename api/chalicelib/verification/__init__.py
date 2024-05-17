@@ -1,9 +1,13 @@
 import os
 import boto3
-from chalice import Blueprint
+import json
+import requests
+from chalice import Blueprint, Response
 from chalicelib.db import get_db
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
+APP_TABLE_STREAM_ARN = os.environ["APP_TABLE_STREAM_ARN"]
+APP_SLACK_WEBHOOK_URL = os.environ["APP_SLACK_WEBHOOK_URL"]
 
 bp = Blueprint(__name__)
 
@@ -173,3 +177,81 @@ def handle_s3_event(event):
         ExpressionAttributeNames={"#state": "state"},
         ExpressionAttributeValues={":state": "approved"},
     )
+
+@bp.on_dynamodb_record(stream_arn=APP_TABLE_STREAM_ARN)
+def handle_dynamodb_record(event):
+    for record in event.get('Records', []):
+        if record['eventName'] == 'MODIFY':
+            new_image = record['dynamodb']['NewImage']
+            status = new_image['status']['S']
+
+            if status == 'denied':
+                user_id = new_image['userId']['S']
+                name = new_image['name']['S']
+                surname = new_image['surname']['S']
+
+                selfie_url = f"https://{APP_BUCKET_NAME}.s3.amazonaws.com/{user_id}/selfie"
+                document_url = f"https://{APP_BUCKET_NAME}.s3.amazonaws.com/{user_id}/student-id"
+
+                # Construct Slack message
+                message = {
+                    "text": f"Manual verification required for user: {user_id}",
+                    "text": f"Name: {name} {surname}",
+                    "attachments": [
+                        {
+                            "title": "Selfie",
+                            "image_url": selfie_url,
+                        },
+                        {
+                            "title": "Document",
+                            "image_url": document_url,
+                        },
+                        {
+                            "fallback": "Approve or Reject",
+                            "callback_id": user_id,
+                            "actions": [
+                                {
+                                    "type": "button",
+                                    "text": "Approve",
+                                    "name": "approve",
+                                    "value": "approved"
+                                },
+                                {
+                                    "type": "button",
+                                    "text": "Reject",
+                                    "name": "reject",
+                                    "value": "denied"
+                                }
+                            ]
+                        }
+                    ]
+                }
+
+                # Send message to Slack using the /send-slack-message route
+                requests.post(f"{bp.current_request.context['domainName']}/send-slack-message",
+                              json={'message': message})
+
+    return Response(body={'message': 'Processed DynamoDB records.'}, status_code=200)
+
+
+@bp.route('/send-slack-message', methods=['POST'], content_types=["application/json"])
+def send_slack_message():
+    request_body = bp.current_request.json_body
+    message = request_body['message']
+
+    response = requests.post(
+        APP_SLACK_WEBHOOK_URL, data=json.dumps(message),
+        headers={'Content-Type': 'application/json'}
+    )
+
+    if response.status_code != 200:
+        return Response(
+            body={
+                'error': 'Failed to send message to Slack',
+                'slack_response': response.text
+            },
+            status_code=500
+        )
+
+    return Response(body={'message': 'Message sent to Slack successfully'}, status_code=200)
+
