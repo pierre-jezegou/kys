@@ -125,12 +125,16 @@ def get_session_as_jwt(session_id: str):
     """
     session = get_session(session_id)
     now = datetime.datetime.now()
+    is_approved = session["state"] == "approved"
+    role = "student" if is_approved else "non-student"
+    institute = session["university"] if is_approved else None
     payload = {
         "sub": session_id,  # Subject
-        "name": session["name"],  # Name
-        "university": session["university"],
-        "state": session["state"],
+        "name": session["name"],
+        "roles": [role],
+        "institute": institute,
         "iat": now,  # Issued at now
+        "iss": "https://verify.college",  # Issuer
         "exp": now + datetime.timedelta(days=7),  # Expires in 7 days
         "jti": str(uuid.uuid4()),  # JWT ID
     }
