@@ -1,3 +1,6 @@
 chalice==1.31.0
 python-dotenv==1.0.1
 pytest
+typing
+boto3==1.34.98
+qrcode==7.4.2
