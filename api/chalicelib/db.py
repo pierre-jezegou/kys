@@ -4,8 +4,8 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import uuid
 import datetime
-from Typing import Optional
-from chalicelib.session import Session
+from typing import Optional
+from chalicelib.session.types import Session, SessionState
 
 @cache
 def get_db() -> boto3.resource:
@@ -21,16 +21,23 @@ def get_db() -> boto3.resource:
 
 
 class SessionRepository:
-    
-    def __init__(self, table_resource):
-        self._table = table_resource
 
-    def list_all_sessions(self):
-        response = self._table.scan()
+    def __init__(self):
+        self._table = self._get_table()
+
+    def _get_table(self):
+        dynamodb = boto3.resource('dynamodb',
+                                  region_name=os.environ["REGION_NAME"])
+        return dynamodb.Table(os.environ["APP_TABLE_NAME"])
+
+    def list_all_sessions(self, filter_expression: Optional[Attr] = None):
+        response = self._table.scan(
+            FilterExpression=filter_expression
+        )
         return response.get('Items')
 
 
-    def add_session(self, name: str, university: str, state: Optional[str]):
+    def add_session(self, name: str, university: str, state: Optional[SessionState]=None):
         id = str(uuid.uuid4())
         if not state:
             state = "pending"
@@ -44,7 +51,7 @@ class SessionRepository:
                 'created': created
             }
 
-        self._table.put_session(
+        self._table.put_item(
             Item=item
         )
         return item
@@ -62,7 +69,7 @@ class SessionRepository:
 
     def update_session_state(self,
                              session_id: str,
-                             state: str):
+                             state: SessionState):
         # We could also use update_item() with an UpdateExpression.
         self.update_item(
             Key={"id": session_id},
