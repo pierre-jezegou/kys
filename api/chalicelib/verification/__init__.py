@@ -67,14 +67,7 @@ def handle_s3_event(event):
     if file == "selfie":
         # Update the session state, state = selfie-submitted
         session_respository.update_session_state(session_id, "selfie-submitted")
-        # get_db().update_item(
-        #     Key={"id": session_id},
-        #     UpdateExpression="SET #state = :state",
-        #     ExpressionAttributeNames={"#state": "state"},
-        #     ExpressionAttributeValues={":state": "selfie-submitted"},
-        # )
 
-    #
     # session = get_db().get_item(Key={"id": session_id})["Item"]
     session = session_respository.get_session(session_id)
 
@@ -96,12 +89,6 @@ def handle_s3_event(event):
     if not text_matches:
         # Update the session state, state = text-not-matched
 
-        # get_db().update_item(
-        #     Key={"id": session_id},
-        #     UpdateExpression="SET #state = :state",
-        #     ExpressionAttributeNames={"#state": "state"},
-        #     ExpressionAttributeValues={":state": "text-not-matched"},
-        # )
         session_respository.update_session_state(session_id, "text-not-matched")
         return
 
@@ -114,20 +101,9 @@ def handle_s3_event(event):
 
     if not faces_match:
         # Update the session state, state = faces-not-matched
-        # get_db().update_item(
-        #     Key={"id": session_id},
-        #     UpdateExpression="SET #state = :state",
-        #     ExpressionAttributeNames={"#state": "state"},
-        #     ExpressionAttributeValues={":state": "faces-not-matched"},
-        # )
+
         session_respository.update_session_state(session_id, "faces-not-matched")
         return
 
     # Update the session state, state = approved
-    # get_db().update_item(
-    #     Key={"id": session_id},
-    #     UpdateExpression="SET #state = :state",
-    #     ExpressionAttributeNames={"#state": "state"},
-    #     ExpressionAttributeValues={":state": "approved"},
-    # )
     session_respository.update_session_state(session_id, "approved")
