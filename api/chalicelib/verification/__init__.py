@@ -1,14 +1,14 @@
 import os
 
 import boto3
-from chalice import Blueprint
-
-from chalicelib.db import get_db
+from chalice import Blueprint, NotFoundError
+from chalicelib.db import SessionRepository, get_db
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 
 bp = Blueprint(__name__)
 
+session_respository = SessionRepository()
 
 def compare_faces(source_object_name, target_object_name, threshold=90):
     rekognition_client = boto3.client("rekognition")
@@ -66,15 +66,20 @@ def handle_s3_event(event):
 
     if file == "selfie":
         # Update the session state, state = selfie-submitted
-        get_db().update_item(
-            Key={"id": session_id},
-            UpdateExpression="SET #state = :state",
-            ExpressionAttributeNames={"#state": "state"},
-            ExpressionAttributeValues={":state": "selfie-submitted"},
-        )
+        session_respository.update_session_state(session_id, "selfie-submitted")
+        # get_db().update_item(
+        #     Key={"id": session_id},
+        #     UpdateExpression="SET #state = :state",
+        #     ExpressionAttributeNames={"#state": "state"},
+        #     ExpressionAttributeValues={":state": "selfie-submitted"},
+        # )
 
     #
-    session = get_db().get_item(Key={"id": session_id})["Item"]
+    # session = get_db().get_item(Key={"id": session_id})["Item"]
+    session = session_respository.get_session(session_id)
+
+    if not session:
+        raise NotFoundError("Session not found.")
 
     selfie_object_name = f"{session_id}/selfie"
     student_id_object_name = f"{session_id}/student-id"
@@ -90,12 +95,14 @@ def handle_s3_event(event):
 
     if not text_matches:
         # Update the session state, state = text-not-matched
-        get_db().update_item(
-            Key={"id": session_id},
-            UpdateExpression="SET #state = :state",
-            ExpressionAttributeNames={"#state": "state"},
-            ExpressionAttributeValues={":state": "text-not-matched"},
-        )
+
+        # get_db().update_item(
+        #     Key={"id": session_id},
+        #     UpdateExpression="SET #state = :state",
+        #     ExpressionAttributeNames={"#state": "state"},
+        #     ExpressionAttributeValues={":state": "text-not-matched"},
+        # )
+        session_respository.update_session_state(session_id, "text-not-matched")
         return
 
     # Check if faces match
@@ -107,18 +114,20 @@ def handle_s3_event(event):
 
     if not faces_match:
         # Update the session state, state = faces-not-matched
-        get_db().update_item(
-            Key={"id": session_id},
-            UpdateExpression="SET #state = :state",
-            ExpressionAttributeNames={"#state": "state"},
-            ExpressionAttributeValues={":state": "faces-not-matched"},
-        )
+        # get_db().update_item(
+        #     Key={"id": session_id},
+        #     UpdateExpression="SET #state = :state",
+        #     ExpressionAttributeNames={"#state": "state"},
+        #     ExpressionAttributeValues={":state": "faces-not-matched"},
+        # )
+        session_respository.update_session_state(session_id, "faces-not-matched")
         return
 
     # Update the session state, state = approved
-    get_db().update_item(
-        Key={"id": session_id},
-        UpdateExpression="SET #state = :state",
-        ExpressionAttributeNames={"#state": "state"},
-        ExpressionAttributeValues={":state": "approved"},
-    )
+    # get_db().update_item(
+    #     Key={"id": session_id},
+    #     UpdateExpression="SET #state = :state",
+    #     ExpressionAttributeNames={"#state": "state"},
+    #     ExpressionAttributeValues={":state": "approved"},
+    # )
+    session_respository.update_session_state(session_id, "approved")
