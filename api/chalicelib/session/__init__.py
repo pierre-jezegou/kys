@@ -7,6 +7,7 @@ import boto3
 from boto3.dynamodb.conditions import Attr
 from chalice import BadRequestError, Blueprint, NotFoundError, Rate
 from chalicelib.db import get_db
+from chalicelib.db import SessionRepository
 
 SessionState = Literal[
     "created",
@@ -21,6 +22,8 @@ SessionState = Literal[
 ]
 
 bp = Blueprint(__name__)
+
+session_repository = SessionRepository()
 
 
 @bp.route(
@@ -44,22 +47,23 @@ def create_session():
     if not university:
         raise BadRequestError("`university` is a required field.")
 
-    id = str(uuid.uuid4())
-    state = "pending"
-    created = datetime.datetime.now().isoformat()
+    item = session_repository.add_session(name, university)
+    # id = str(uuid.uuid4())
+    # state = "pending"
+    # created = datetime.datetime.now().isoformat()
 
-    get_db().put_item(
-        Item={
-            "id": id,
-            "name": name,
-            "university": university,
-            "state": state,
-            "created": created,
-            "updated": created,
-        }
-    )
+    # get_db().put_item(
+    #     Item={
+    #         "id": id,
+    #         "name": name,
+    #         "university": university,
+    #         "state": state,
+    #         "created": created,
+    #         "updated": created,
+    #     }
+    # )
 
-    return {"sessionId": id}
+    return {"sessionId": item.get("id")}
 
 
 @bp.route(
@@ -72,8 +76,8 @@ def get_session(session_id: str):
     """
     Returns a verification session.
     """
-
-    session = get_db().get_item(Key={"id": session_id}).get("Item")
+    session = session_repository.get_session(session_id)
+    # session = get_db().get_item(Key={"id": session_id}).get("Item")
 
     if not session:
         raise NotFoundError("Session not found.")
@@ -91,8 +95,8 @@ def get_sessions():
     Returns all verification sessions.
     """
 
-    sessions = get_db().scan().get("Items")
-
+    # sessions = get_db().scan().get("Items")
+    sessions = session_repository.list_all_sessions()
     return sessions
 
 @bp.route(
