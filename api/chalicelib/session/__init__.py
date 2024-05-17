@@ -6,8 +6,7 @@ from typing import Literal
 import boto3
 from boto3.dynamodb.conditions import Attr
 from chalice import BadRequestError, Blueprint, NotFoundError, Rate
-from chalicelib.db import get_db
-from chalicelib.db import SessionRepository
+from chalicelib.db import SessionRepository, get_db
 
 SessionState = Literal[
     "created",
@@ -62,7 +61,6 @@ def create_session():
     #         "updated": created,
     #     }
     # )
-
     return {"sessionId": item.get("id")}
 
 
@@ -141,10 +139,12 @@ def clean_expired_sessions():
     Cleans expired verification sessions.
     """
     cleanup_before = datetime.datetime.now() - datetime.timedelta(days=1)
-
-    sessions = get_db().scan(
-        FilterExpression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
-    ).get('Items')
+    sessions = session_repository.list_all_sessions()
+    filter_expression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
+    sessions = session_repository.list_all_sessions(filter_expression)
+    # sessions = get_db().scan(
+    #     FilterExpression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
+    # ).get('Items')
 
     session_ids = [session['id'] for session in sessions]
     if not session_ids:
