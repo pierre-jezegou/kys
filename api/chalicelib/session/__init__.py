@@ -40,7 +40,6 @@ def create_session():
         raise BadRequestError("`university` is a required field.")
 
     item = session_repository.add_session(name, university)
-
     return {"sessionId": item.get("id")}
 
 
