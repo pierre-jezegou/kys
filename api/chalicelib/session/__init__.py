@@ -35,20 +35,7 @@ def create_session():
         raise BadRequestError("`university` is a required field.")
 
     item = session_repository.add_session(name, university)
-    # id = str(uuid.uuid4())
-    # state = "pending"
-    # created = datetime.datetime.now().isoformat()
 
-    # get_db().put_item(
-    #     Item={
-    #         "id": id,
-    #         "name": name,
-    #         "university": university,
-    #         "state": state,
-    #         "created": created,
-    #         "updated": created,
-    #     }
-    # )
     return {"sessionId": item.get("id")}
 
 
@@ -63,7 +50,6 @@ def get_session(session_id: str):
     Returns a verification session.
     """
     session = session_repository.get_session(session_id)
-    # session = get_db().get_item(Key={"id": session_id}).get("Item")
 
     if not session:
         raise NotFoundError("Session not found.")
@@ -81,7 +67,6 @@ def get_sessions():
     Returns all verification sessions.
     """
 
-    # sessions = get_db().scan().get("Items")
     sessions = session_repository.list_all_sessions()
     return sessions
 
@@ -130,9 +115,6 @@ def clean_expired_sessions():
     sessions = session_repository.list_all_sessions()
     filter_expression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
     sessions = session_repository.list_all_sessions(filter_expression)
-    # sessions = get_db().scan(
-    #     FilterExpression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
-    # ).get('Items')
 
     session_ids = [session['id'] for session in sessions]
     if not session_ids:
