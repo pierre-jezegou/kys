@@ -59,6 +59,9 @@ resource "aws_dynamodb_table" "sessions_table" {
   read_capacity  = 1
   write_capacity = 1
 
+  stream_enabled   = true
+  stream_view_type = "NEW_IMAGE"
+
   tags = {
     Name    = "Sessions Table"
     project = "KYS"
@@ -75,4 +78,8 @@ output "session_files_bucket_name" {
 
 output "sessions_table_name" {
   value = aws_dynamodb_table.sessions_table.name
+}
+
+output "sessions_table_arn" {
+  value = aws_dynamodb_table.sessions_table.stream_arn
 }
