@@ -2,7 +2,7 @@ import os
 
 import boto3
 from chalice import Blueprint, NotFoundError
-from chalicelib.db import SessionRepository, get_db
+from chalicelib.models.session import SessionRepository, Session, SessionState
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 

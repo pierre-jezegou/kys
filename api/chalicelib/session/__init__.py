@@ -6,19 +6,7 @@ from typing import Literal
 import boto3
 from boto3.dynamodb.conditions import Attr
 from chalice import BadRequestError, Blueprint, NotFoundError, Rate
-from chalicelib.db import SessionRepository, get_db
-
-SessionState = Literal[
-    "created",
-    "selfie-submitted",
-    "student-id-submitted",
-    "face-not-detected",
-    "too-many-faces",
-    "faces-not-matched",
-    "text-not-detected",
-    "text-not-matched",
-    "approved",
-]
+from chalicelib.models.session import SessionRepository, SessionState, Session
 
 bp = Blueprint(__name__)
 
