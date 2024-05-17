@@ -1,8 +1,6 @@
 import os
-
 import boto3
 from chalice import Blueprint
-
 from chalicelib.db import get_db
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
@@ -28,6 +26,17 @@ def compare_faces(source_object_name, target_object_name, threshold=90):
         and response["FaceMatches"][0]["Similarity"] > threshold
     )
 
+def detect_faces(object_name):
+    rekognition_client = boto3.client("rekognition")
+
+    response = rekognition_client.detect_faces(
+        Image={
+            "S3Object": {"Bucket": APP_BUCKET_NAME, "Name": object_name}
+        },
+        Attributes=['ALL']
+    )
+
+    return len(response['FaceDetails'])
 
 def needles_in_haystack(needles, haystack):
     for needle in needles:
@@ -78,6 +87,20 @@ def handle_s3_event(event):
 
     selfie_object_name = f"{session_id}/selfie"
     student_id_object_name = f"{session_id}/student-id"
+
+    # Detect faces in the images
+    selfie_faces = detect_faces(selfie_object_name)
+    student_id_faces = detect_faces(student_id_object_name)
+
+    if selfie_faces != 1 or student_id_faces != 1:
+        # Update the session state, state = more-than-one-face
+        get_db().update_item(
+            Key={"id": session_id},
+            UpdateExpression="SET #state = :state",
+            ExpressionAttributeNames={"#state": "state"},
+            ExpressionAttributeValues={":state": "more-than-one-face"},
+        )
+        return
 
     # Check if text matches
     text_matches = image_contains_texts(
