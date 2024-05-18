@@ -116,6 +116,18 @@ class SessionRepository:
             Key=Key("id").eq(id)
         )
 
+    def delete_sessions(self, session_ids: list[Session]):
+        """
+        Deletes multiple sessions from the DynamoDB table.
+
+        Args:
+            session_ids: A list of session IDs.
+        """
+        with self._table.batch_writer() as batch:
+            for session_id in session_ids:
+                batch.delete_item(Key={"id": session_id})
+
+
     def update_session_state(self,
                              session_id: str,
                              state: SessionState):

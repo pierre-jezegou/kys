@@ -183,21 +183,8 @@ def clean_expired_sessions():
         return []
 
     delete_session_images(session_ids)
-    delete_sessions(session_ids)
+    session_repository.delete_sessions(session_ids)
     return session_ids
-
-
-def delete_sessions(session_ids):
-    """
-    Deletes the sessions from the DynamoDB table in bulk.
-    """
-    with get_db().batch_writer() as batch:
-        for session_id in session_ids:
-            batch.delete_item(
-                Key={
-                    'id': session_id
-                }
-            )
 
 
 def delete_session_images(sessions_ids):
