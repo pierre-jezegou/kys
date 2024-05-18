@@ -10,18 +10,18 @@ Guiding principles:
 ## Public Endpoints
 
 | Endpoint                         | Description                                       |
-| -------------------------------- | ------------------------------------------------- |
+|----------------------------------|---------------------------------------------------|
 | `POST /session`                  | Create a new session, returns a session ID        |
 | `GET /session`                   | Get all sessions, supports pagination             |
 | `GET /session/{id}`              | Get a session by ID                               |
+| `GET /session/{id}/jwt`          | Get the verification status of a session as jwt   |
 | `POST /presigned-url/selfie`     | Create a presigned URL for uploading a file to S3 |
 | `POST /presigned-url/student-id` | Create a presigned URL for uploading a file to S3 |
-
 
 ## Internal Lambda Functions
 
 | Function            | Description                                |
-| ------------------- | ------------------------------------------ |
+|---------------------|--------------------------------------------|
 | `upload-selfie`     | Upload a selfie to S3                      |
 | `upload-student-id` | Upload a student ID to S3                  |
 | `extract-text`      | Extract text from an image                 |
@@ -58,8 +58,6 @@ flowchart TB
     ExactlyOneFace -->|Face comparison suceeded| Approved
 end
 ```
-
-
 
 ## Verification Flow
 

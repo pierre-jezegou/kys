@@ -1,12 +1,17 @@
+import base64
 import datetime
 import os
 import uuid
 from typing import Literal
 
 import boto3
+import jwt
 from boto3.dynamodb.conditions import Attr
 from chalice import BadRequestError, Blueprint, NotFoundError, Rate
 from chalicelib.models.session import SessionRepository, SessionState, Session
+
+SIGN_KEY = None
+SSM_SIGN_KEY_NAME = '/sessions/sign-key'
 
 bp = Blueprint(__name__)
 
@@ -56,6 +61,7 @@ def get_session(session_id: str):
 
     return session
 
+
 @bp.route(
     "/audit",
     methods=["GET"],
@@ -69,6 +75,7 @@ def get_sessions():
 
     sessions = session_repository.list_all_sessions()
     return sessions
+
 
 @bp.route(
     "/{session_id}/presigned-url/{file}",
@@ -104,6 +111,58 @@ def create_presigned_url(session_id: str, file: str):
     )
 
     return {"presignedUrl": presigned_url}
+
+
+@bp.route(
+    "/{session_id}/jwt",
+    methods=["GET"],
+    content_types=["application/json"],
+    cors=True,
+)
+def get_session_as_jwt(session_id: str):
+    """
+    Returns a verification session as a JWT.
+    """
+    session = get_session(session_id)
+    now = datetime.datetime.now()
+    payload = {
+        "sub": session_id,  # Subject
+        "name": session["name"],  # Name
+        "university": session["university"],
+        "state": session["state"],
+        "iat": now,  # Issued at now
+        "exp": now + datetime.timedelta(days=7),  # Expires in 7 days
+        "jti": str(uuid.uuid4()),  # JWT ID
+    }
+
+    secret = get_sign_key()
+    token = jwt.encode(payload, secret, algorithm="HS256")
+
+    return {"token": token}
+
+
+def get_sign_key():
+    global SIGN_KEY
+    if not SIGN_KEY:
+        base64_key = create_sign_key_if_needed()
+        SIGN_KEY = base64.b64decode(base64_key)
+    return SIGN_KEY
+
+
+def create_sign_key_if_needed():
+    ssm = boto3.client('ssm')
+    try:
+        loaded_entry = ssm.get_parameter(
+            Name=SSM_SIGN_KEY_NAME,
+            WithDecryption=True
+        )
+        return loaded_entry['Parameter']['Value']
+    except ssm.exceptions.ParameterNotFound:
+        kms = boto3.client('kms')
+        random_bytes = kms.generate_random(NumberOfBytes=32)['Plaintext']
+        key = base64.b64encode(random_bytes).decode()
+        ssm.put_parameter(Name=SSM_SIGN_KEY_NAME, Value=key, Type='SecureString')
+        return key
 
 
 @bp.schedule(Rate(7, unit=Rate.DAYS))
