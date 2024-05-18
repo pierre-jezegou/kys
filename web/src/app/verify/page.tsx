@@ -7,26 +7,8 @@ import {
   DialogTitle,
 } from "@/components/catalyst/dialog";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
 
-type Params = {
-  params: {
-    sessionId: string;
-  };
-};
-
-export default function Verify({ params: { sessionId } }: Params) {
-  const router = useRouter();
-
-  const handleNext = useCallback(() => {
-    if (window.innerWidth > 768) {
-      router.push(`/verify/switch-to-phone/${sessionId}`);
-    } else {
-      router.push(`/verify/upload-selfie/${sessionId}`);
-    }
-  }, [router, sessionId]);
-
+export default function Start() {
   return (
     <>
       <DialogTitle>Let&apos;s Get You Verified!</DialogTitle>
@@ -45,7 +27,7 @@ export default function Verify({ params: { sessionId } }: Params) {
         </div>
       </DialogBody>
       <DialogActions>
-        <Button onClick={handleNext}>Kick Off Verification</Button>
+        <Button href="/verify/fill-details">Kick Off Verification</Button>
       </DialogActions>
     </>
   );
