@@ -8,24 +8,17 @@ import boto3
 import jwt
 from boto3.dynamodb.conditions import Attr
 from chalice import BadRequestError, Blueprint, NotFoundError, Rate
-from chalicelib.db import get_db
+from chalicelib.models.session import SessionRepository, SessionState, Session
 
-SessionState = Literal[
-    "created",
-    "selfie-submitted",
-    "student-id-submitted",
-    "face-not-detected",
-    "too-many-faces",
-    "faces-not-matched",
-    "text-not-detected",
-    "text-not-matched",
-    "approved",
-]
+SIGN_KEY = None
+SSM_SIGN_KEY_NAME = '/sessions/sign-key'
 
 SIGN_KEY = None
 SSM_SIGN_KEY_NAME = '/sessions/sign-key'
 
 bp = Blueprint(__name__)
+
+session_repository = SessionRepository()
 
 
 @bp.route(
@@ -49,22 +42,8 @@ def create_session():
     if not university:
         raise BadRequestError("`university` is a required field.")
 
-    id = str(uuid.uuid4())
-    state = "pending"
-    created = datetime.datetime.now().isoformat()
-
-    get_db().put_item(
-        Item={
-            "id": id,
-            "name": name,
-            "university": university,
-            "state": state,
-            "created": created,
-            "updated": created,
-        }
-    )
-
-    return {"sessionId": id}
+    item = session_repository.add_session(name, university)
+    return {"sessionId": item.get("id")}
 
 
 @bp.route(
@@ -77,8 +56,7 @@ def get_session(session_id: str):
     """
     Returns a verification session.
     """
-
-    session = get_db().get_item(Key={"id": session_id}).get("Item")
+    session = session_repository.get_session(session_id)
 
     if not session:
         raise NotFoundError("Session not found.")
@@ -97,8 +75,7 @@ def get_sessions():
     Returns all verification sessions.
     """
 
-    sessions = get_db().scan().get("Items")
-
+    sessions = session_repository.list_all_sessions()
     return sessions
 
 
@@ -148,7 +125,7 @@ def get_session_as_jwt(session_id: str):
     """
     Returns a verification session as a JWT.
     """
-    session = get_session(session_id)
+    session = session_repository.get_session(session_id)
     now = datetime.datetime.now()
     is_approved = session["state"] == "approved"
     role = "student" if is_approved else "non-student"
@@ -200,31 +177,17 @@ def clean_expired_sessions():
     Cleans expired verification sessions.
     """
     cleanup_before = datetime.datetime.now() - datetime.timedelta(days=1)
-
-    sessions = get_db().scan(
-        FilterExpression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
-    ).get('Items')
+    sessions = session_repository.list_all_sessions()
+    filter_expression=(Attr('state').ne('approved')) & (Attr('created').lt(cleanup_before.isoformat()))
+    sessions = session_repository.list_all_sessions(filter_expression)
 
     session_ids = [session['id'] for session in sessions]
     if not session_ids:
         return []
 
     delete_session_images(session_ids)
-    delete_sessions(session_ids)
+    session_repository.delete_sessions(session_ids)
     return session_ids
-
-
-def delete_sessions(session_ids):
-    """
-    Deletes the sessions from the DynamoDB table in bulk.
-    """
-    with get_db().batch_writer() as batch:
-        for session_id in session_ids:
-            batch.delete_item(
-                Key={
-                    'id': session_id
-                }
-            )
 
 
 def delete_session_images(sessions_ids):
