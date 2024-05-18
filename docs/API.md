@@ -65,7 +65,7 @@ flowchart TB
     Start[*] -->|API: Customer creates session| Created
     Created[Created] -->|S3 Event: Student uploads selfie| UploadedSelfie[UploadedSelfie]
     UploadedSelfie -->|S3 Event: Student uploads id| UploadedStudentCard[UplopadedStudentCard]
-    
+
 
     subgraph Verification process
     subgraph Approved states
@@ -98,22 +98,23 @@ sequenceDiagram
     participant DynamoDB
     participant Rekognition
 
-    User->>Webshop: Fill checkout form (name, university)
-    Webshop->>Server: Create verification session
-    Server->>DynamoDB: Create session document
-    DynamoDB-->>Server: Session document created
-    Server->>Webshop: Verification session created
     Webshop-->>User: Redirect to verification service
 
+    User->>Server: Fill checkout form (name, university)
+    Server->>DynamoDB: Create session document
+    DynamoDB-->>Server: Session document created
+    Server->>User: Verification session created
+
+
     par Upload Student ID and Selfie
-        User->>Server: Request pre-signed URL for student ID upload
-        Server->>S3: Request pre-signed URL for student ID upload
+        User->>Server: Get pre-signed URL for student ID upload
+        Server->>S3: Get pre-signed URL for student ID upload
         S3-->>Server: Pre-signed URL created
         Server-->>User: Pre-signed URL created
         User->>S3: Upload student ID
     and
-        User->>Server: Request pre-signed URL for selfie upload
-        Server->>S3: Request pre-signed URL for selfie upload
+        User->>Server: Get pre-signed URL for selfie upload
+        Server->>S3: Get pre-signed URL for selfie upload
         S3-->>Server: Pre-signed URL created
         Server-->>User: Pre-signed URL created
         User->>S3: Upload selfie
@@ -142,5 +143,10 @@ sequenceDiagram
         Server-->>User: Verification status
     end
 
-    User->>Webshop: Redirect to order confirmation
+    User->>Server: Get JWT
+    Server->>DynamoDB: Get verification status
+    DynamoDB-->>Server: Verification status
+    Server->>Server: Create JWT
+    Server-->>User: JWT
+    User->>Webshop: Authenticate as a student with JWT
 ```
