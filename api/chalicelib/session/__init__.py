@@ -122,7 +122,7 @@ def get_session_as_jwt(session_id: str):
     """
     Returns a verification session as a JWT.
     """
-    session = get_session(session_id)
+    session = session_repository.get_session(session_id)
     now = datetime.datetime.now()
     is_approved = session["state"] == "approved"
     role = "student" if is_approved else "non-student"
