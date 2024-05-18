@@ -13,6 +13,9 @@ from chalicelib.models.session import SessionRepository, SessionState, Session
 SIGN_KEY = None
 SSM_SIGN_KEY_NAME = '/sessions/sign-key'
 
+SIGN_KEY = None
+SSM_SIGN_KEY_NAME = '/sessions/sign-key'
+
 bp = Blueprint(__name__)
 
 session_repository = SessionRepository()
