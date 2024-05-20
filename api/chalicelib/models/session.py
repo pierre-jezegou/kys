@@ -17,6 +17,7 @@ SessionState = Literal[
     "approved",
 ]
 
+
 class Session(TypedDict):
     id: str
     name: str
@@ -41,8 +42,7 @@ class SessionRepository:
         Returns:
             The DynamoDB table.
         """
-        dynamodb = boto3.resource('dynamodb',
-                                  region_name=os.environ["REGION_NAME"])
+        dynamodb = boto3.resource("dynamodb", region_name=os.environ["REGION_NAME"])
         return dynamodb.Table(os.environ["APP_TABLE_NAME"])
 
     def list_all_sessions(self, filter_expression: Optional[Attr] = None):
@@ -55,12 +55,14 @@ class SessionRepository:
         Returns:
             A list of session items.
         """
-        response = self._table.scan(
-            FilterExpression=filter_expression
-        )
-        return response.get('Items')
+        if not filter_expression:
+            return self._table.scan().get("Items")
+        else:
+            return self._table.scan(FilterExpression=filter_expression).get("Items")
 
-    def add_session(self, name: str, university: str, state: Optional[SessionState]=None):
+    def add_session(
+        self, name: str, university: str, state: Optional[SessionState] = None
+    ):
         """
         Adds a new session to the DynamoDB table.
 
@@ -78,16 +80,14 @@ class SessionRepository:
         created = datetime.datetime.now().isoformat()
 
         item = {
-                'id': id,
-                'name': name,
-                'university': university,
-                'state': state,
-                'created': created
-            }
+            "id": id,
+            "name": name,
+            "university": university,
+            "state": state,
+            "created": created,
+        }
 
-        self._table.put_item(
-            Item=item
-        )
+        self._table.put_item(Item=item)
         return item
 
     def get_session(self, id: str) -> Optional[Session]:
@@ -100,10 +100,8 @@ class SessionRepository:
         Returns:
             The retrieved session item, or None if not found.
         """
-        response = self._table.get_item(
-            Key={"id": id}
-        )
-        return response.get('Item')
+        response = self._table.get_item(Key={"id": id})
+        return response.get("Item")
 
     def delete_session(self, id: str):
         """
@@ -112,9 +110,7 @@ class SessionRepository:
         Args:
             id: The ID of the session.
         """
-        self._table.delete_item(
-            Key=Key("id").eq(id)
-        )
+        self._table.delete_item(Key=Key("id").eq(id))
 
     def delete_sessions(self, session_ids: list[Session]):
         """
@@ -127,10 +123,7 @@ class SessionRepository:
             for session_id in session_ids:
                 batch.delete_item(Key={"id": session_id})
 
-
-    def update_session_state(self,
-                             session_id: str,
-                             state: SessionState):
+    def update_session_state(self, session_id: str, state: SessionState):
         """
         Updates the state of a session in the DynamoDB table.
 
