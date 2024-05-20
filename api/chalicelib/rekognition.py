@@ -1,5 +1,5 @@
 # FROM https://github.com/aws-samples/chalice-workshop.git
-import uuid
+import uuid, json
 
 class RekognitionClient(object):
     """A client for interacting with the Rekognition service.
@@ -12,8 +12,13 @@ class RekognitionClient(object):
 
     """
 
-    def __init__(self, boto3_client):
+    def __init__(self, boto3_client, abbreviations_file='abbreviations.json'):
         self._boto3_client = boto3_client
+        self.abbreviations = self._load_abbreviations(abbreviations_file)
+
+    def _load_abbreviations(self, file_path):
+        with open(file_path, 'r') as file:
+            return json.load(file)
 
     def compare_faces(self, bucket, source_object_name, target_object_name, threshold=90):
         """Compares faces in two images stored in an S3 bucket.
@@ -120,7 +125,7 @@ def name_in_haystack(first_name, last_name, haystack):
 
     return False
 
-def university_in_haystack(university, haystack):
+def university_in_haystack(university, haystack, abbreviations):
     """
     Check if the university name or its abbreviation is present in the haystack.
 
@@ -132,10 +137,6 @@ def university_in_haystack(university, haystack):
         bool: True if the university name or abbreviation is found, False otherwise.
     """
     detected_lines = [text["DetectedText"] for text in haystack["TextDetections"] if text["Type"] == "LINE"]
-    abbreviations = {
-        "École Centrale de Lille": "centralelille",
-        # Add more abbreviations as needed
-    }
 
     full_name_present = any(university in line for line in detected_lines)
     abbreviation_present = any(abbreviations.get(university, "") in line for line in detected_lines)
