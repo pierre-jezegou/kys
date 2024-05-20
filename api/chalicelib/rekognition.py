@@ -82,27 +82,64 @@ class RekognitionClient(object):
             }
         )
 
-        return needles_in_haystack(texts, response)
+        # Assume texts contains [first_name, last_name, university]
+        first_name, last_name, university = texts
+
+        if not name_in_haystack(first_name, last_name, response):
+            return False
+
+        if not university_in_haystack(university, response):
+            return False
+
+        return True
 
 
-def needles_in_haystack(needles, haystack):
+def name_in_haystack(first_name, last_name, haystack):
     """
-    Check if all the needles are present in the haystack.
+    Check if the first and last name are present in the haystack, allowing for split lines.
 
     Args:
-        needles (list): A list of strings representing the needles to search for.
+        first_name (str): The first name to search for.
+        last_name (str): The last name to search for.
         haystack (dict): A dictionary containing the haystack data.
 
     Returns:
-        bool: True if all the needles are found in the haystack, False otherwise.
+        bool: True if the name is found in the haystack, False otherwise.
     """
-    for needle in needles:
-        for text in haystack["TextDetections"]:
-            if needle in text["DetectedText"] and text["Type"] == "LINE":
-                break
-        else:
-            return False
+    detected_lines = [text["DetectedText"] for text in haystack["TextDetections"] if text["Type"] == "LINE"]
 
-    return True
+    # Check if the name components are in separate lines
+    for i in range(len(detected_lines) - 1):
+        if (first_name in detected_lines[i] and last_name in detected_lines[i + 1]) or (last_name in detected_lines[i] and first_name in detected_lines[i + 1]):
+            return True
+
+    # Check if the name components are in the same line
+    full_name = f"{first_name} {last_name}"
+    if any(full_name in line for line in detected_lines):
+        return True
+
+    return False
+
+def university_in_haystack(university, haystack):
+    """
+    Check if the university name or its abbreviation is present in the haystack.
+
+    Args:
+        university (str): The university name to search for.
+        haystack (dict): A dictionary containing the haystack data.
+
+    Returns:
+        bool: True if the university name or abbreviation is found, False otherwise.
+    """
+    detected_lines = [text["DetectedText"] for text in haystack["TextDetections"] if text["Type"] == "LINE"]
+    abbreviations = {
+        "École Centrale de Lille": "centralelille",
+        # Add more abbreviations as needed
+    }
+
+    full_name_present = any(university in line for line in detected_lines)
+    abbreviation_present = any(abbreviations.get(university, "") in line for line in detected_lines)
+
+    return full_name_present or abbreviation_present
 
 
