@@ -1,12 +1,8 @@
 import os
 import boto3
-<<<<<<< HEAD
 from chalice import Blueprint, NotFoundError
 from chalicelib.models.session import SessionRepository, Session, SessionState
-=======
-from chalice import Blueprint
 from chalicelib.db import get_db
->>>>>>> c8554dd (Added face detection logic to verification process)
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 
@@ -83,84 +79,37 @@ def image_contains_texts(object_name, texts):
 @bp.on_s3_event(bucket=APP_BUCKET_NAME, events=["s3:ObjectCreated:*"])
 def handle_s3_event(event):
     print(f"Received S3 event: {event}")
-
     session_id, file = event.key.split("/")
-
     if file not in ["selfie", "student-id"]:
         return
-    
     print(f"Processing file: {file} for session: {session_id}")
-
     if file == "selfie":
-        # Update the session state, state = selfie-submitted
         session_respository.update_session_state(session_id, "selfie-submitted")
-
-    # session = get_db().get_item(Key={"id": session_id})["Item"]
     session = session_respository.get_session(session_id)
-
     if not session:
         raise NotFoundError("Session not found.")
-
     selfie_object_name = f"{session_id}/selfie"
     student_id_object_name = f"{session_id}/student-id"
-
     selfie_faces, error = detect_faces(selfie_object_name)
     if error:
-        get_db().update_item(
-            Key={"id": session_id},
-            UpdateExpression="SET #state = :state",
-            ExpressionAttributeNames={"#state": "state"},
-            ExpressionAttributeValues={":state": "error-detecting-selfie-faces"},
-        )
+        session_respository.update_session_state(session_id, error)
         return
-
     student_id_faces, error = detect_faces(student_id_object_name)
     if error:
-        get_db().update_item(
-            Key={"id": session_id},
-            UpdateExpression="SET #state = :state",
-            ExpressionAttributeNames={"#state": "state"},
-            ExpressionAttributeValues={":state": "error-detecting-student-id-faces"},
-        )
+        session_respository.update_session_state(session_id, error)
         return
-
     if selfie_faces != 1 or student_id_faces != 1:
-        # Update the session state, state = more-than-one-face
-        get_db().update_item(
-            Key={"id": session_id},
-            UpdateExpression="SET #state = :state",
-            ExpressionAttributeNames={"#state": "state"},
-            ExpressionAttributeValues={":state": "more-than-one-face"},
-        )
+        session_respository.update_session_state(session_id, "more-than-one-face")
         return
-
-    # Check if text matches
     text_matches = image_contains_texts(
         student_id_object_name,
-        [
-            session["name"],
-            session["university"],
-        ],
+        [session["name"], session["university"]],
     )
-
     if not text_matches:
-        # Update the session state, state = text-not-matched
-
         session_respository.update_session_state(session_id, "text-not-matched")
         return
-
-    # Check if faces match
-
-    faces_match = compare_faces(
-        selfie_object_name,
-        student_id_object_name,
-    )
-
+    faces_match = compare_faces(selfie_object_name, student_id_object_name)
     if not faces_match:
-        # Update the session state, state = faces-not-matched
-
         session_respository.update_session_state(session_id, "faces-not-matched")
         return
-
-    # Update the session state, state = approved
     session_respository.update_session_state(session_id, "approved")
