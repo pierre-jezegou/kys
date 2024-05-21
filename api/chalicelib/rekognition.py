@@ -1,5 +1,9 @@
 # FROM https://github.com/aws-samples/chalice-workshop.git
 import uuid, json
+import boto3
+import os
+
+region_name = os.getenv('REGION_NAME', 'us-east-1')
 
 class RekognitionClient(object):
     """A client for interacting with the Rekognition service.
@@ -12,8 +16,8 @@ class RekognitionClient(object):
 
     """
 
-    def __init__(self, boto3_client, abbreviations_file='abbreviations.json'):
-        self._boto3_client = boto3_client
+    def __init__(self, abbreviations_file='abbreviations.json'):
+        self._boto3_client = boto3.client("rekognition", region_name=region_name)
         self.abbreviations = self._load_abbreviations(abbreviations_file)
 
     def _load_abbreviations(self, file_path):
@@ -86,15 +90,20 @@ class RekognitionClient(object):
                 }
             }
         )
-
+        print("Detected text: ", response)
         # Assume texts contains [first_name, last_name, university]
         first_name, last_name = texts[0].split(' ')
         university = texts[1]
 
+        print({
+            "first_name": first_name,
+            "last_name": last_name,
+            "university": university
+        })
         if not name_in_haystack(first_name, last_name, response):
             return False
 
-        if not university_in_haystack(university, response):
+        if not university_in_haystack(university, response, self.abbreviations):
             return False
 
         return True
@@ -105,7 +114,7 @@ class RekognitionClient(object):
             Image={
                 "S3Object": {"Bucket": bucket, "Name": object_name}
             },
-            Attributes=['ALL']
+            Attributes=['DEFAULT']
         )
 
         return len(response['FaceDetails'])
@@ -149,7 +158,7 @@ def university_in_haystack(university, haystack, abbreviations):
         bool: True if the university name or abbreviation is found, False otherwise.
     """
     detected_lines = [text["DetectedText"] for text in haystack["TextDetections"] if text["Type"] == "LINE"]
-
+    print(detected_lines)
     full_name_present = any(university in line for line in detected_lines)
     abbreviation_present = any(abbreviations.get(university, "") in line for line in detected_lines)
 

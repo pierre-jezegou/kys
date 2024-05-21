@@ -2,14 +2,13 @@ import os
 import boto3
 from chalice import Blueprint, NotFoundError
 from chalicelib.models.session import SessionRepository, Session, SessionState
-from chalicelib.rekognition import RekognitionClient, compare_faces, detect_faces, image_contains_texts
+from chalicelib.rekognition import RekognitionClient
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 
 bp = Blueprint(__name__)
 
 session_respository = SessionRepository()
-
-rekognition_client = RekognitionClient('../abbreviations.json')
+rekognition_client = RekognitionClient('chalicelib/abbreviations.json')
 
 
 @bp.on_s3_event(bucket=APP_BUCKET_NAME, events=["s3:ObjectCreated:*"])
@@ -24,8 +23,11 @@ def handle_s3_event(event):
     if file == "selfie":
         # Update the session state, state = selfie-submitted
         session_respository.update_session_state(session_id, "selfie-submitted")
+    
+    if file == "student-id":
+        # Update the session state, state = student-id-submitted
+        session_respository.update_session_state(session_id, "selfie-submitted")
 
-    # session = get_db().get_item(Key={"id": session_id})["Item"]
     session = session_respository.get_session(session_id)
 
     if not session:
