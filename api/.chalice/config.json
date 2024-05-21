@@ -4,6 +4,7 @@
   "environment_variables": {
     "REGION_NAME": "us-east-1"
   },
+  "automatic_layer": true,
   "stages": {
     "dev": {
       "api_gateway_stage": "api",
@@ -11,7 +12,8 @@
         "APP_BUCKET_NAME": "kys-session-files-da6014dae34952c5",
         "APP_TABLE_NAME": "kys-sessions",
         "APP_TABLE_STREAM_ARN": "arn:aws:dynamodb:us-east-1:381491976429:table/kys-sessions/stream/2024-05-17T17:14:10.037",
-        "APP_SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/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"
+        "APP_SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/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",
+        "APP_API_BASE_URL": "https://rs1756mnwk.execute-api.us-east-1.amazonaws.com/api"
       },
       "iam_role_arn": "arn:aws:iam::381491976429:role/LabRole"
     },
