@@ -91,3 +91,10 @@ export async function getSessions() {
   );
   return response.json();
 }
+
+export async function getSessionToken(sessionId: string) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/session/${sessionId}/jwt`
+  );
+  return response.json();
+}
