@@ -8,7 +8,8 @@ export type State =
   | "text-not-detected"
   | "text-not-matched"
   | "approved"
-  | "pending";
+  | "pending"
+  | "denied";
 
 export type Session = {
   id: number;
@@ -23,6 +24,7 @@ const DENIED_STATES = [
   "faces-not-matched",
   "text-not-detected",
   "text-not-matched",
+  "denied",
 ];
 const APPROVED_STATES = ["approved"];
 
