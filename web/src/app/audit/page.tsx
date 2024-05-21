@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/catalyst/table";
 import { Session, State, getProgress } from "@/lib/session";
+import { useEffect, useState } from "react";
 import { useSessions } from "@/hooks/useSession";
 import LoginPage from "@/app/auth/loginPage";
 
@@ -81,10 +82,12 @@ function SessionsTable() {
 }
 
 export default function Audit() {
-  const isAuthenticated = () => {
-    const accessToken = sessionStorage.getItem('accessToken');
-    return !!accessToken;
-  };
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  return isAuthenticated() ? <SessionsTable /> : <LoginPage />;
+  useEffect(() => {
+    const accessToken = sessionStorage.getItem('accessToken');
+    setIsAuthenticated(!!accessToken);
+  }, []);
+
+  return isAuthenticated ? <SessionsTable /> : <LoginPage />;
 }

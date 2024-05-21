@@ -1,8 +1,8 @@
 import { CognitoIdentityProviderClient, InitiateAuthCommand, SignUpCommand, ConfirmSignUpCommand } from "@aws-sdk/client-cognito-identity-provider";
 
 const config = {
-  region: process.env.region,
-  clientId: process.env.USER_POOL_CLIENT_ID,
+  region: process.env.NEXT_PUBLIC_REGION,
+  clientId: process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID,
 }
 
 export const cognitoClient = new CognitoIdentityProviderClient({
