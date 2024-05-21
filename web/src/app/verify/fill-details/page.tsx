@@ -19,11 +19,12 @@ import { createSession } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-const universities = [
-  "Universitat Politècnica de Catalunya",
-  "Danmarks Tekniske Universitet",
-  "École Centrale de Lille",
-];
+const universities = {
+  "Universitat Politècnica de Catalunya":
+    "Universitat Politècnica de Catalunya",
+  "Danmarks Tekniske Universitet": "Danmarks Tekniske Universitet",
+  "École Centrale de Lille": "centralelille",
+};
 
 export default function FillDetails() {
   const router = useRouter();
@@ -73,8 +74,10 @@ export default function FillDetails() {
               onChange={(e) => setUniversity(e.target.value)}
             >
               <option value="">Select a university</option>
-              {universities.map((university) => (
-                <option key={university}>{university}</option>
+              {Object.entries(universities).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {key}
+                </option>
               ))}
             </Select>
             <Description>

@@ -25,6 +25,13 @@ const statusExplanation: Record<State, string> = {
   pending: "The verification is pending.",
 };
 
+const universities: Record<string, string> = {
+  "Universitat Politècnica de Catalunya":
+    "Universitat Politècnica de Catalunya",
+  "Danmarks Tekniske Universitet": "Danmarks Tekniske Universitet",
+  centralelille: "École Centrale de Lille",
+};
+
 function SessionsTable({ sessions }: any) {
   return (
     <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
@@ -45,7 +52,7 @@ function SessionsTable({ sessions }: any) {
                   <div className="font-medium">{session.name}</div>
                   <div className="text-zinc-500">
                     <a href="#" className="hover:text-zinc-700">
-                      {session.university}
+                      {universities[session.university] || session.university}
                     </a>
                   </div>
                 </div>
