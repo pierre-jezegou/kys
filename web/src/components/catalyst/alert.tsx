@@ -9,7 +9,6 @@ import {
 } from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
-import { Fragment } from 'react'
 import { Text } from './text'
 
 const sizes = {
@@ -33,10 +32,9 @@ export function Alert({
   ...props
 }: { size?: keyof typeof sizes; children: React.ReactNode } & HeadlessDialogProps) {
   return (
-    <HeadlessTransition appear as={Fragment} show={open} {...props}>
+    <HeadlessTransition appear show={open} {...props}>
       <HeadlessDialog onClose={onClose}>
         <HeadlessTransitionChild
-          as={Fragment}
           enter="ease-out duration-100"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -50,7 +48,6 @@ export function Alert({
         <div className="fixed inset-0 w-screen overflow-y-auto pt-6 sm:pt-0">
           <div className="grid min-h-full grid-rows-[1fr_auto_1fr] justify-items-center p-8 sm:grid-rows-[1fr_auto_3fr] sm:p-4">
             <HeadlessTransitionChild
-              as={Fragment}
               enter="ease-out duration-100"
               enterFrom="opacity-0 scale-95"
               enterTo="opacity-100 scale-100"

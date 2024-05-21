@@ -98,18 +98,12 @@ export function Listbox<T>({
         </span>
       </HeadlessListboxButton>
       <HeadlessTransition
-        as={Fragment}
         leave="transition-opacity duration-100 ease-in pointer-events-none"
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
       >
         <HeadlessListboxOptions
-          as="div"
-          anchor={{
-            to: 'selection start',
-            offset: 'var(--anchor-offset)',
-            padding: 'var(--anchor-padding)',
-          }}
+          anchor="selection start"
           className={clsx(
             // Anchor positioning
             '[--anchor-offset:-1.625rem] [--anchor-padding:theme(spacing.4)] sm:[--anchor-offset:-1.375rem]',

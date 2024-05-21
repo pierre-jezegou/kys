@@ -22,7 +22,6 @@ import {
 } from '@headlessui/react'
 import clsx from 'clsx'
 import type React from 'react'
-import { Fragment } from 'react'
 import { Button } from './button'
 import { Link } from './link'
 
@@ -36,20 +35,12 @@ export function DropdownButton<T extends React.ElementType = typeof Button>(
   return <HeadlessMenuButton as={Button} {...props} />
 }
 
-export function DropdownMenu({
-  anchor = 'bottom',
-  ...props
-}: { anchor?: NonNullable<HeadlessMenuItemsProps['anchor']>['to'] } & Omit<HeadlessMenuItemsProps, 'anchor'>) {
+export function DropdownMenu({ anchor = 'bottom', ...props }: HeadlessMenuItemsProps) {
   return (
-    <HeadlessTransition as={Fragment} leave="duration-100 ease-in" leaveTo="opacity-0">
+    <HeadlessTransition leave="duration-100 ease-in" leaveTo="opacity-0">
       <HeadlessMenuItems
         {...props}
-        anchor={{
-          to: anchor,
-          gap: 'var(--anchor-gap)',
-          offset: 'var(--anchor-offset)',
-          padding: 'var(--anchor-padding)',
-        }}
+        anchor={anchor}
         className={clsx(
           props.className,
 
