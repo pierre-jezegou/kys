@@ -2,8 +2,9 @@ import os
 import boto3
 import json
 import requests
-from chalice import Blueprint, Response
+from chalice import Blueprint, Response, BadRequestError
 from chalicelib.db import get_db
+from urllib.parse import parse_qs
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 APP_TABLE_STREAM_ARN = os.environ["APP_TABLE_STREAM_ARN"]
@@ -282,7 +283,7 @@ def handle_dynamodb_record(event):
                                         "text": "Approve",
                                     },
                                     "style": "primary",
-                                    "value": "approved",
+                                    "value": user_id,
                                     "action_id": "approved"
                                 },
                                 {
@@ -292,7 +293,7 @@ def handle_dynamodb_record(event):
                                         "text": "Deny",
                                     },
                                     "style": "danger",
-                                    "value": "denied",
+                                    "value": user_id,
                                     "action_id": "denied"
                                 }
                             ]
@@ -304,3 +305,80 @@ def handle_dynamodb_record(event):
                     APP_SLACK_WEBHOOK_URL, json=message,
                     headers={'Content-Type': 'application/json'}
                 )
+
+
+@bp.route(
+    "/update_state",
+    methods=["POST"],
+    content_types=["application/x-www-form-urlencoded", "application/json"],
+    cors=True,
+)
+def update_state():
+    try:
+        raw_body = bp.current_request.raw_body.decode()
+        form_data = parse_qs(raw_body)
+
+        if 'payload' not in form_data:
+            raise BadRequestError("Missing payload in request")
+
+        payload = form_data.get('payload', [None])[0]
+
+        if payload is None:
+            raise BadRequestError("Payload is empty")
+
+        data = json.loads(payload)
+
+        actions = data.get("actions", [])
+        if not actions or 'action_id' not in actions[0]:
+            raise BadRequestError("Wrong payload in request")
+
+        action_id = actions[0]["action_id"]
+        value = actions[0]["value"]
+
+        get_db().update_item(
+            Key={"id": value},
+            UpdateExpression="SET #state = :state",
+            ExpressionAttributeNames={"#state": "state"},
+            ExpressionAttributeValues={":state": action_id},
+        )
+
+        response_url = data.get("response_url")
+
+        if response_url:
+            response_message = {
+                    "replace_original": "true",
+                    "blocks": [
+                        {
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": f"Manual verification for user: {value}"
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": f"Decision: {action_id}"
+                                }
+                            ]
+                        },
+                    ]
+                }
+
+            requests.post(
+                response_url, json=response_message,
+                headers={'Content-Type': 'application/json'}
+            )
+
+        return {"text": "ok"}
+
+    except BadRequestError as e:
+        return Response(body={'error': str(e)}, status_code=400)
+
+    except json.JSONDecodeError:
+        return Response(body={'error': 'Invalid JSON payload'}, status_code=400)
+
+    except Exception as e:
+        return Response(body={'error': 'Internal server error'}, status_code=500)
