@@ -1,11 +1,21 @@
-# FROM https://github.com/aws-samples/chalice-workshop.git
-import uuid, json
-import boto3
 import os
 
-region_name = os.getenv('REGION_NAME', 'us-east-1')
+import boto3
+from unidecode import unidecode
 
-class RekognitionClient(object):
+THRESHOLD = float(os.getenv("THRESHOLD", 90))
+
+REGION_NAME = os.getenv("REGION_NAME", "us-east-1")
+
+ABBREVIATIONS = {
+    "centralelille": "centralelille",
+    "École Centrale de Lille": "centralelille",
+    "Massachusetts Institute of Technology": "MIT",
+    "California Institute of Technology": "Caltech",
+}
+
+
+class RekognitionClient:
     """A client for interacting with the Rekognition service.
 
     This class provides methods for performing various operations using the Rekognition service,
@@ -16,15 +26,12 @@ class RekognitionClient(object):
 
     """
 
-    def __init__(self, abbreviations_file='abbreviations.json'):
-        self._boto3_client = boto3.client("rekognition", region_name=region_name)
-        self.abbreviations = self._load_abbreviations(abbreviations_file)
+    def __init__(self):
+        self._boto3_client = boto3.client("rekognition", region_name=REGION_NAME)
 
-    def _load_abbreviations(self, file_path):
-        with open(file_path, 'r') as file:
-            return json.load(file)
-
-    def compare_faces(self, bucket, source_object_name, target_object_name, threshold=90):
+    def compare_faces(
+        self, bucket, source_object_name, target_object_name, threshold=THRESHOLD
+    ):
         """Compares faces in two images stored in an S3 bucket.
 
         Args:
@@ -38,39 +45,16 @@ class RekognitionClient(object):
 
         """
         response = self._boto3_client.compare_faces(
-            SourceImage={
-                "S3Object": {
-                    "Bucket": bucket,
-                    "Name": source_object_name}
-                    },
-            TargetImage={
-                "S3Object": {
-                    "Bucket": bucket,
-                    "Name": target_object_name}},
-            )
+            SourceImage={"S3Object": {"Bucket": bucket, "Name": source_object_name}},
+            TargetImage={"S3Object": {"Bucket": bucket, "Name": target_object_name}},
+        )
         return (
             len(response["FaceMatches"]) == 1
             and len(response["UnmatchedFaces"]) == 0
-            and response["FaceMatches"][0]["Similarity"] > threshold)
+            and response["FaceMatches"][0]["Similarity"] > threshold
+        )
 
-    
-    def compare_logo(self, university_bucket, university_logo, bucket, student_id_key):
-        """
-        Compares the logo of a university with the logo extracted from a student ID image.
-
-        Args:
-            university_bucket (str): The name of the S3 bucket where the university logo is stored.
-            university_logo (str): The filename of the university logo image.
-            bucket (str): The name of the S3 bucket where the student ID image is stored.
-            student_id_key (str): The key of the student ID image in the S3 bucket.
-
-        Returns:
-            bool: True if the logos match, False otherwise.
-        """
-        #TODO
-        return True
-    
-    def image_contains_texts(self, bucket, object_name, texts):
+    def image_contains_texts(self, bucket, object_name, name, university):
         """Detects text in an image stored in an S3 bucket and checks if it contains the specified texts.
 
         Args:
@@ -90,63 +74,55 @@ class RekognitionClient(object):
                 }
             }
         )
-        print("Detected text: ", response)
-        # Assume texts contains [first_name, last_name, university]
-        first_name, last_name = texts[0].split(' ')
-        university = texts[1]
 
-        print({
-            "first_name": first_name,
-            "last_name": last_name,
-            "university": university
-        })
-        if not name_in_haystack(first_name, last_name, response):
+        if not name_in_haystack(name, response):
             return False
 
-        if not university_in_haystack(university, response, self.abbreviations):
+        if not university_in_haystack(university, response):
             return False
 
         return True
-    
+
     def detect_faces(self, bucket, object_name):
         """Detects faces in an image stored in an S3 bucket."""
         response = self._boto3_client.detect_faces(
-            Image={
-                "S3Object": {"Bucket": bucket, "Name": object_name}
-            },
-            Attributes=['DEFAULT']
+            Image={"S3Object": {"Bucket": bucket, "Name": object_name}},
+            Attributes=["DEFAULT"],
         )
 
-        return len(response['FaceDetails'])
+        return len(response["FaceDetails"])
 
 
-def name_in_haystack(first_name, last_name, haystack):
+def name_in_haystack(name: str, haystack: dict) -> bool:
     """
     Check if the first and last name are present in the haystack, allowing for split lines.
 
     Args:
-        first_name (str): The first name to search for.
-        last_name (str): The last name to search for.
+        name (str): The name to search for.
         haystack (dict): A dictionary containing the haystack data.
 
     Returns:
         bool: True if the name is found in the haystack, False otherwise.
     """
-    detected_lines = [text["DetectedText"] for text in haystack["TextDetections"] if text["Type"] == "LINE"]
 
-    # Check if the name components are in separate lines
-    for i in range(len(detected_lines) - 1):
-        if (first_name in detected_lines[i] and last_name in detected_lines[i + 1]) or (last_name in detected_lines[i] and first_name in detected_lines[i + 1]):
-            return True
+    # Strip accents and lowercase the name
+    name = unidecode(name).lower()
 
-    # Check if the name components are in the same line
-    full_name = f"{first_name} {last_name}"
-    if any(full_name in line for line in detected_lines):
-        return True
+    # Split the name into first and last components
+    first_name, last_name = name.split(" ")
 
-    return False
+    detected_lines = [
+        unidecode(text["DetectedText"]).lower()
+        for text in haystack["TextDetections"]
+        if text["Type"] == "LINE"
+    ]
 
-def university_in_haystack(university, haystack, abbreviations):
+    return any(first_name in line for line in detected_lines) and any(
+        last_name in line for line in detected_lines
+    )
+
+
+def university_in_haystack(university, haystack):
     """
     Check if the university name or its abbreviation is present in the haystack.
 
@@ -157,11 +133,17 @@ def university_in_haystack(university, haystack, abbreviations):
     Returns:
         bool: True if the university name or abbreviation is found, False otherwise.
     """
-    detected_lines = [text["DetectedText"] for text in haystack["TextDetections"] if text["Type"] == "LINE"]
-    print(detected_lines)
-    full_name_present = any(university in line for line in detected_lines)
-    abbreviation_present = any(abbreviations.get(university, "") in line for line in detected_lines)
+    abbrs = ABBREVIATIONS.get(university, "")
 
-    return full_name_present or abbreviation_present
+    # Strip accents and lowercase the university name
+    university = unidecode(university).lower()
 
+    detected_lines = [
+        unidecode(text["DetectedText"]).lower()
+        for text in haystack["TextDetections"]
+        if text["Type"] == "LINE"
+    ]
 
+    return any(university in line for line in detected_lines) or any(
+        abbrs in line for line in detected_lines
+    )
