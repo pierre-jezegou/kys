@@ -17,6 +17,7 @@ if __name__ == "__main__":
         "APP_BUCKET_NAME": os.getenv("APP_BUCKET_NAME", "kys-session-files"),
         "APP_TABLE_NAME": os.getenv("APP_TABLE_NAME", "kys-sessions"),
         "REGION_NAME": os.getenv("REGION_NAME", "us-east-1"),
-        "IAM_ROLE_ARN": os.getenv("IAM_ROLE_ARN", "")
+        "IAM_ROLE_ARN": os.getenv("IAM_ROLE_ARN", ""),
+        "USER_POOL_ARN": os.getenv("USER_POOL_ARN", "")
     }
     inject_environment_variables(file_path, env_variables)

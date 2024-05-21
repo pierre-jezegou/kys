@@ -10,7 +10,7 @@ data "aws_iam_role" "lab_role" {
 }
 
 resource "aws_s3_bucket" "session_files" {
-  bucket = "kys-session-files-${random_id.bucket_id.hex}"
+  bucket        = "kys-session-files-${random_id.bucket_id.hex}"
   force_destroy = true
   tags = {
     Name    = "Session Files Bucket"
@@ -65,6 +65,21 @@ resource "aws_dynamodb_table" "sessions_table" {
   }
 }
 
+resource "aws_cognito_user_pool" "pool" {
+  name = "kys-user-pool"
+}
+
+resource "aws_cognito_user_pool_client" "app_client" {
+  user_pool_id = aws_cognito_user_pool.pool.id
+  name         = "kys-app-client"
+
+  explicit_auth_flows = [
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_USER_SRP_AUTH"
+  ]
+}
+
 output "lab_role_arn" {
   value = data.aws_iam_role.lab_role.arn
 }
@@ -75,4 +90,16 @@ output "session_files_bucket_name" {
 
 output "sessions_table_name" {
   value = aws_dynamodb_table.sessions_table.name
+}
+
+output "user_pool_id" {
+  value = aws_cognito_user_pool.pool.id
+}
+
+output "user_pool_arn" {
+  value = aws_cognito_user_pool.pool.arn
+}
+
+output "user_pool_client_id" {
+  value = aws_cognito_user_pool_client.app_client.id
 }

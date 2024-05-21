@@ -27,6 +27,7 @@ terraform apply
 This terraform script return the name of the S3 bucket and the DynamoDB table. You will need to update the `api/.chalice/config.json` file with these values:
 - Update the field `APP_BUCKET_NAME` in `api/.chalice/config.json` with the name of the S3 bucket.
 - Update the field `APP_TABLE_NAME` in `api/.chalice/config.json` with the name of the DynamoDB table.
+- Update the field `USER_POOL_ARN` in `api/.chalice/config.json`.
 - Update the field `iam_role_arn` in `api/.chalice/config.json` with the `LabRole` IAM role ARN from the Learner Lab.
 
 #### Run the API locally
