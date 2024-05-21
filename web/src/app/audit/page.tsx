@@ -11,6 +11,7 @@ import {
 } from "@/components/catalyst/table";
 import { Session, State, getProgress } from "@/lib/session";
 import { useSessions } from "@/hooks/useSession";
+import LoginPage from "@/app/auth/loginPage";
 
 const statusExplanation: Record<State, string> = {
   created: "A verification session has been created.",
@@ -32,7 +33,8 @@ const universities: Record<string, string> = {
   centralelille: "École Centrale de Lille",
 };
 
-function SessionsTable({ sessions }: any) {
+function SessionsTable() {
+  const sessions = useSessions();
   return (
     <Table className="[--gutter:theme(spacing.6)] sm:[--gutter:theme(spacing.8)]">
       <TableHead>
@@ -79,6 +81,10 @@ function SessionsTable({ sessions }: any) {
 }
 
 export default function Audit() {
-  const sessions = useSessions();
-  return <SessionsTable sessions={sessions} />;
+  const isAuthenticated = () => {
+    const accessToken = sessionStorage.getItem('accessToken');
+    return !!accessToken;
+  };
+
+  return isAuthenticated() ? <SessionsTable /> : <LoginPage />;
 }
