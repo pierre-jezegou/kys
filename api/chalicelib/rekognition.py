@@ -88,7 +88,8 @@ class RekognitionClient(object):
         )
 
         # Assume texts contains [first_name, last_name, university]
-        first_name, last_name, university = texts
+        first_name, last_name = texts[0].split(' ')
+        university = texts[1]
 
         if not name_in_haystack(first_name, last_name, response):
             return False
@@ -97,6 +98,17 @@ class RekognitionClient(object):
             return False
 
         return True
+    
+    def detect_faces(self, bucket, object_name):
+        """Detects faces in an image stored in an S3 bucket."""
+        response = self._boto3_client.detect_faces(
+            Image={
+                "S3Object": {"Bucket": bucket, "Name": object_name}
+            },
+            Attributes=['ALL']
+        )
+
+        return len(response['FaceDetails'])
 
 
 def name_in_haystack(first_name, last_name, haystack):
