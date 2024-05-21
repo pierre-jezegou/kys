@@ -2,57 +2,16 @@ import os
 
 import boto3
 from chalice import Blueprint, NotFoundError
-from chalicelib.models.session import SessionRepository, Session, SessionState
+
+from chalicelib.models.session import SessionRepository
+from chalicelib.rekognition import RekognitionClient
 
 APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 
 bp = Blueprint(__name__)
 
 session_respository = SessionRepository()
-
-def compare_faces(source_object_name, target_object_name, threshold=90):
-    rekognition_client = boto3.client("rekognition")
-
-    response = rekognition_client.compare_faces(
-        SourceImage={
-            "S3Object": {"Bucket": APP_BUCKET_NAME, "Name": source_object_name}
-        },
-        TargetImage={
-            "S3Object": {"Bucket": APP_BUCKET_NAME, "Name": target_object_name}
-        },
-    )
-
-    return (
-        len(response["FaceMatches"]) == 1
-        and len(response["UnmatchedFaces"]) == 0
-        and response["FaceMatches"][0]["Similarity"] > threshold
-    )
-
-
-def needles_in_haystack(needles, haystack):
-    for needle in needles:
-        for text in haystack["TextDetections"]:
-            if needle in text["DetectedText"] and text["Type"] == "LINE":
-                break
-        else:
-            return False
-
-    return True
-
-
-def image_contains_texts(object_name, texts):
-    rekognition_client = boto3.client("rekognition")
-
-    response = rekognition_client.detect_text(
-        Image={
-            "S3Object": {
-                "Bucket": APP_BUCKET_NAME,
-                "Name": object_name,
-            }
-        }
-    )
-
-    return needles_in_haystack(texts, response)
+rekognition_client = RekognitionClient()
 
 
 @bp.on_s3_event(bucket=APP_BUCKET_NAME, events=["s3:ObjectCreated:*"])
@@ -68,7 +27,10 @@ def handle_s3_event(event):
         # Update the session state, state = selfie-submitted
         session_respository.update_session_state(session_id, "selfie-submitted")
 
-    # session = get_db().get_item(Key={"id": session_id})["Item"]
+    if file == "student-id":
+        # Update the session state, state = student-id-submitted
+        session_respository.update_session_state(session_id, "selfie-submitted")
+
     session = session_respository.get_session(session_id)
 
     if not session:
@@ -77,13 +39,23 @@ def handle_s3_event(event):
     selfie_object_name = f"{session_id}/selfie"
     student_id_object_name = f"{session_id}/student-id"
 
+    # Detect faces in the images
+    selfie_faces = rekognition_client.detect_faces(APP_BUCKET_NAME, selfie_object_name)
+    student_id_faces = rekognition_client.detect_faces(
+        APP_BUCKET_NAME, student_id_object_name
+    )
+
+    if selfie_faces != 1 or student_id_faces != 1:
+        # Update the session state, state = more-than-one-face
+        session_respository.update_session_state(session_id, "more-than-one-face")
+        return
+
     # Check if text matches
-    text_matches = image_contains_texts(
+    text_matches = rekognition_client.image_contains_texts(
+        APP_BUCKET_NAME,
         student_id_object_name,
-        [
-            session["name"],
-            session["university"],
-        ],
+        name=session["name"],
+        university=session["university"],
     )
 
     if not text_matches:
@@ -93,10 +65,8 @@ def handle_s3_event(event):
         return
 
     # Check if faces match
-
-    faces_match = compare_faces(
-        selfie_object_name,
-        student_id_object_name,
+    faces_match = rekognition_client.compare_faces(
+        APP_BUCKET_NAME, selfie_object_name, student_id_object_name, 90
     )
 
     if not faces_match:

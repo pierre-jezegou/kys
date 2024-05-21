@@ -1,7 +1,21 @@
-# FROM https://github.com/aws-samples/chalice-workshop.git
-import uuid
+import os
 
-class RekognitionClient(object):
+import boto3
+from unidecode import unidecode
+
+THRESHOLD = float(os.getenv("THRESHOLD", 90))
+
+REGION_NAME = os.getenv("REGION_NAME", "us-east-1")
+
+ABBREVIATIONS = {
+    "centralelille": "centralelille",
+    "École Centrale de Lille": "centralelille",
+    "Massachusetts Institute of Technology": "MIT",
+    "California Institute of Technology": "Caltech",
+}
+
+
+class RekognitionClient:
     """A client for interacting with the Rekognition service.
 
     This class provides methods for performing various operations using the Rekognition service,
@@ -12,10 +26,12 @@ class RekognitionClient(object):
 
     """
 
-    def __init__(self, boto3_client):
-        self._boto3_client = boto3_client
+    def __init__(self):
+        self._boto3_client = boto3.client("rekognition", region_name=REGION_NAME)
 
-    def compare_faces(self, bucket, source_object_name, target_object_name, threshold=90):
+    def compare_faces(
+        self, bucket, source_object_name, target_object_name, threshold=THRESHOLD
+    ):
         """Compares faces in two images stored in an S3 bucket.
 
         Args:
@@ -29,39 +45,16 @@ class RekognitionClient(object):
 
         """
         response = self._boto3_client.compare_faces(
-            SourceImage={
-                "S3Object": {
-                    "Bucket": bucket,
-                    "Name": source_object_name}
-                    },
-            TargetImage={
-                "S3Object": {
-                    "Bucket": bucket,
-                    "Name": target_object_name}},
-            )
+            SourceImage={"S3Object": {"Bucket": bucket, "Name": source_object_name}},
+            TargetImage={"S3Object": {"Bucket": bucket, "Name": target_object_name}},
+        )
         return (
             len(response["FaceMatches"]) == 1
             and len(response["UnmatchedFaces"]) == 0
-            and response["FaceMatches"][0]["Similarity"] > threshold)
+            and response["FaceMatches"][0]["Similarity"] > threshold
+        )
 
-    
-    def compare_logo(self, university_bucket, university_logo, bucket, student_id_key):
-        """
-        Compares the logo of a university with the logo extracted from a student ID image.
-
-        Args:
-            university_bucket (str): The name of the S3 bucket where the university logo is stored.
-            university_logo (str): The filename of the university logo image.
-            bucket (str): The name of the S3 bucket where the student ID image is stored.
-            student_id_key (str): The key of the student ID image in the S3 bucket.
-
-        Returns:
-            bool: True if the logos match, False otherwise.
-        """
-        #TODO
-        return True
-    
-    def image_contains_texts(self, bucket, object_name, texts):
+    def image_contains_texts(self, bucket, object_name, name, university):
         """Detects text in an image stored in an S3 bucket and checks if it contains the specified texts.
 
         Args:
@@ -82,27 +75,75 @@ class RekognitionClient(object):
             }
         )
 
-        return needles_in_haystack(texts, response)
+        if not name_in_haystack(name, response):
+            return False
+
+        if not university_in_haystack(university, response):
+            return False
+
+        return True
+
+    def detect_faces(self, bucket, object_name):
+        """Detects faces in an image stored in an S3 bucket."""
+        response = self._boto3_client.detect_faces(
+            Image={"S3Object": {"Bucket": bucket, "Name": object_name}},
+            Attributes=["DEFAULT"],
+        )
+
+        return len(response["FaceDetails"])
 
 
-def needles_in_haystack(needles, haystack):
+def name_in_haystack(name: str, haystack: dict) -> bool:
     """
-    Check if all the needles are present in the haystack.
+    Check if the first and last name are present in the haystack, allowing for split lines.
 
     Args:
-        needles (list): A list of strings representing the needles to search for.
+        name (str): The name to search for.
         haystack (dict): A dictionary containing the haystack data.
 
     Returns:
-        bool: True if all the needles are found in the haystack, False otherwise.
+        bool: True if the name is found in the haystack, False otherwise.
     """
-    for needle in needles:
-        for text in haystack["TextDetections"]:
-            if needle in text["DetectedText"] and text["Type"] == "LINE":
-                break
-        else:
-            return False
 
-    return True
+    # Strip accents and lowercase the name
+    name = unidecode(name).lower()
+
+    # Split the name into first and last components
+    first_name, last_name = name.split(" ")
+
+    detected_lines = [
+        unidecode(text["DetectedText"]).lower()
+        for text in haystack["TextDetections"]
+        if text["Type"] == "LINE"
+    ]
+
+    return any(first_name in line for line in detected_lines) and any(
+        last_name in line for line in detected_lines
+    )
 
 
+def university_in_haystack(university, haystack):
+    """
+    Check if the university name or its abbreviation is present in the haystack.
+
+    Args:
+        university (str): The university name to search for.
+        haystack (dict): A dictionary containing the haystack data.
+
+    Returns:
+        bool: True if the university name or abbreviation is found, False otherwise.
+    """
+    abbrs = ABBREVIATIONS.get(university, "")
+
+    # Strip accents and lowercase the university name
+    university = unidecode(university).lower()
+
+    detected_lines = [
+        unidecode(text["DetectedText"]).lower()
+        for text in haystack["TextDetections"]
+        if text["Type"] == "LINE"
+    ]
+
+    return any(university in line for line in detected_lines) or any(
+        abbrs in line for line in detected_lines
+    )
