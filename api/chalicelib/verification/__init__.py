@@ -9,6 +9,14 @@ APP_BUCKET_NAME = os.environ["APP_BUCKET_NAME"]
 APP_TABLE_STREAM_ARN = os.environ["APP_TABLE_STREAM_ARN"]
 APP_SLACK_WEBHOOK_URL = os.environ["APP_SLACK_WEBHOOK_URL"]
 
+DENIED_STATES = [
+    "face-not-detected",
+    "too-many-faces",
+    "faces-not-matched",
+    "text-not-detected",
+    "text-not-matched",
+]
+
 bp = Blueprint(__name__)
 
 
@@ -25,10 +33,11 @@ def compare_faces(source_object_name, target_object_name, threshold=90):
     )
 
     return (
-        len(response["FaceMatches"]) == 1
-        and len(response["UnmatchedFaces"]) == 0
-        and response["FaceMatches"][0]["Similarity"] > threshold
+            len(response["FaceMatches"]) == 1
+            and len(response["UnmatchedFaces"]) == 0
+            and response["FaceMatches"][0]["Similarity"] > threshold
     )
+
 
 def detect_faces(object_name):
     rekognition_client = boto3.client("rekognition")
@@ -51,6 +60,7 @@ def detect_faces(object_name):
         return None, f"error-detecting-faces: {e}"
 
     return len(response["FaceDetails"]), None
+
 
 def needles_in_haystack(needles, haystack):
     for needle in needles:
@@ -86,7 +96,7 @@ def handle_s3_event(event):
 
     if file not in ["selfie", "student-id"]:
         return
-    
+
     print(f"Processing file: {file} for session: {session_id}")
 
     if file == "selfie":
@@ -178,80 +188,119 @@ def handle_s3_event(event):
         ExpressionAttributeValues={":state": "approved"},
     )
 
+
+def generate_presigned_url(session_id, file):
+    client = boto3.client("s3")
+
+    presigned_url = client.generate_presigned_url(
+        ClientMethod="get_object",
+        Params={
+            "Bucket": os.environ["APP_BUCKET_NAME"],
+            "Key": f"{session_id}/{file}",
+        },
+        ExpiresIn=3600,  # 1 hour
+    )
+
+    return presigned_url
+
+
 @bp.on_dynamodb_record(stream_arn=APP_TABLE_STREAM_ARN)
 def handle_dynamodb_record(event):
-    for record in event.get('Records', []):
-        if record['eventName'] == 'MODIFY':
-            new_image = record['dynamodb']['NewImage']
-            status = new_image['status']['S']
+    for record in event:
+        print("Received record: " + str(record))
+        if record.event_name == 'MODIFY':
+            new_image = record.new_image
+            status = new_image['state']['S']
 
-            if status == 'denied':
-                user_id = new_image['userId']['S']
+            if status in DENIED_STATES:
+                user_id = new_image['id']['S']
                 name = new_image['name']['S']
-                surname = new_image['surname']['S']
+                university = new_image['university']['S']
 
-                selfie_url = f"https://{APP_BUCKET_NAME}.s3.amazonaws.com/{user_id}/selfie"
-                document_url = f"https://{APP_BUCKET_NAME}.s3.amazonaws.com/{user_id}/student-id"
+                selfie_url = generate_presigned_url(user_id, 'selfie')
+                document_url = generate_presigned_url(user_id, 'student-id')
 
                 # Construct Slack message
                 message = {
-                    "text": f"Manual verification required for user: {user_id}",
-                    "text": f"Name: {name} {surname}",
-                    "attachments": [
+                    "blocks": [
                         {
-                            "title": "Selfie",
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": f"Manual verification required for user: {user_id}"
+                            }
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": f"Name: {name}"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": f"University: {university}",
+                                }
+                            ]
+                        },
+                        {
+                            "type": "divider"
+                        },
+                        {
+                            "type": "image",
+                            "title": {
+                                "type": "plain_text",
+                                "text": "Selfie",
+                            },
                             "image_url": selfie_url,
+                            "alt_text": "selfie"
                         },
                         {
-                            "title": "Document",
+                            "type": "image",
+                            "title": {
+                                "type": "plain_text",
+                                "text": "Document",
+                            },
                             "image_url": document_url,
+                            "alt_text": "student_document"
                         },
                         {
-                            "fallback": "Approve or Reject",
-                            "callback_id": user_id,
-                            "actions": [
+                            "type": "divider"
+                        },
+                        {
+                            "type": "actions",
+                            "elements": [
                                 {
                                     "type": "button",
-                                    "text": "Approve",
-                                    "name": "approve",
-                                    "value": "approved"
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Approve",
+                                    },
+                                    "style": "primary",
+                                    "value": "approved",
+                                    "action_id": "approved"
                                 },
                                 {
                                     "type": "button",
-                                    "text": "Reject",
-                                    "name": "reject",
-                                    "value": "denied"
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Deny",
+                                    },
+                                    "style": "danger",
+                                    "value": "denied",
+                                    "action_id": "denied"
                                 }
                             ]
                         }
                     ]
                 }
 
-                # Send message to Slack using the /send-slack-message route
-                requests.post(f"{bp.current_request.context['domainName']}/send-slack-message",
-                              json={'message': message})
-
-    return Response(body={'message': 'Processed DynamoDB records.'}, status_code=200)
-
-
-@bp.route('/send-slack-message', methods=['POST'], content_types=["application/json"])
-def send_slack_message():
-    request_body = bp.current_request.json_body
-    message = request_body['message']
-
-    response = requests.post(
-        APP_SLACK_WEBHOOK_URL, data=json.dumps(message),
-        headers={'Content-Type': 'application/json'}
-    )
-
-    if response.status_code != 200:
-        return Response(
-            body={
-                'error': 'Failed to send message to Slack',
-                'slack_response': response.text
-            },
-            status_code=500
-        )
-
-    return Response(body={'message': 'Message sent to Slack successfully'}, status_code=200)
-
+                response = requests.post(
+                    APP_SLACK_WEBHOOK_URL, json=message,
+                    headers={'Content-Type': 'application/json'}
+                )
